@@ -1,0 +1,33 @@
+image: maven:3.6.3-jdk-11
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - mvn compile
+
+test:
+  stage: test
+  services:
+    - name: docker:dind
+      # explicitly disable tls to avoid docker startup interruption
+      command: [ "--tls=false" ]
+  variables:
+    # Instruct Testcontainers to use the daemon of DinD.
+    DOCKER_HOST: "tcp://docker:2375"
+    # Improve performance with overlayfs.
+    DOCKER_DRIVER: overlay2
+    # Instruct Docker not to start over TLS.
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_VERIFY: ""
+    DOCKER_CERT_PATH: ""
+  script:
+    - mvn test verify -e
+  artifacts:
+    paths:
+      - target/failsafe-reports
+      - target/surefire-reports
+
