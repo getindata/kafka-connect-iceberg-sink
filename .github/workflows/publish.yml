@@ -53,7 +53,7 @@ jobs:
       - name: Update version to SNAPSHOT
         run: |
           mvn -B semver:update-pre-release -Dset=SNAPSHOT
-          git commit -m "FIX - Change version from ${{ steps.get_package_version.outputs.package_version }} to ${{ steps.get_package_version.outputs.package_version }}-SNAPSHOT"
+          git commit -am "FIX - Change version from ${{ steps.get_package_version.outputs.package_version }} to ${{ steps.get_package_version.outputs.package_version }}-SNAPSHOT"
 
       - name: Push
         run: git push
