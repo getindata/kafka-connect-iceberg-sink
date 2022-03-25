@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
-- First release
+## [0.1.1] - 2022-03-25
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/f93895eafa4452a5bde363f72fde07ebb900908f...HEAD
+-   First release
+
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.1.1...HEAD
+
+[0.1.1]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/1190003ddc686273cb9ad28ce7dd2d8e458471d7...0.1.1
