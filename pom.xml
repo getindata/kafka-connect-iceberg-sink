@@ -6,7 +6,7 @@
 
     <groupId>com.getindata</groupId>
     <artifactId>kafka-connect-iceberg-sink</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <packaging>jar</packaging>
 
     <properties>
