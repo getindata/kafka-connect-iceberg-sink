@@ -1,0 +1,59 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # necessary to enable merging, all the history is needed
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Package
+        run: mvn -B package -DskipTests
+
+      - name: Get package version
+        id: get_package_version
+        run: |
+          echo "::set-output name=package_version::$(mvn semver:verify-current -Dforce-stdout -q)"
+          
+      - name: Create temporary file with the body content for the release
+        run: |
+          grep -Poz "## \[${{steps.get_package_version.outputs.package_version}}] - \d{4}-\d{2}-\d{2}[\S\s]+?(?=## \[\d+\.\d+\.\d+\]|\[.+\]:)" CHANGELOG.md > release_body.md
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          name: Release ${{ steps.get_package_version.outputs.package_version }}
+          tag: ${{ steps.get_package_version.outputs.package_version }}
+          artifacts: "target/kafka-connect-iceberg-sink-*-shaded.jar"
+          bodyFile: ./release_body.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge back to develop  # we have to set the config first on a fresh machine
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git checkout -b develop --track origin/develop
+          git merge main
+
+      - name: Update version to SNAPSHOT
+        run: |
+          mvn -B semver:update-pre-release -Dset=SNAPSHOT
+          git commit -m "FIX - Change version from ${{ steps.get_package_version.outputs.package_version }} to ${{ steps.get_package_version.outputs.package_version }}-SNAPSHOT"
+
+      - name: Push
+        run: git push
