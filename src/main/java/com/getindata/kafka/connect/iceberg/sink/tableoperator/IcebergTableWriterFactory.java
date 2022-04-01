@@ -40,7 +40,7 @@ public class IcebergTableWriterFactory {
         BaseTaskWriter<Record> writer;
         if (icebergTable.schema().identifierFieldIds().isEmpty() || !configuration.isUpsert()) {
             if (configuration.isUpsert()) {
-                LOGGER.info("Table don't have Pk defined upsert is not possible falling back to append!");
+                LOGGER.warn("Table don't have Primary Key defined, upsert is not possible falling back to append!");
             }
             if (icebergTable.spec().isUnpartitioned()) {
                 writer = new UnpartitionedWriter<>(

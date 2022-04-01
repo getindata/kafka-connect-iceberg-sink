@@ -24,10 +24,3 @@ jobs:
 
       - name: System tests
         run: mvn -B verify
-
-      - name: Store artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: Shaded jar
-          path: target/kafka-connect-iceberg-sink-*-shaded.jar
-          retention-days: 7
