@@ -134,6 +134,6 @@ public class IcebergTableOperator {
             throw new ConnectException(ex);
         }
 
-        LOGGER.info("Committed {} events to table! {}", events.size(), icebergTable.location());
+        LOGGER.debug("Committed {} events to table {}", events.size(), icebergTable.location());
     }
 }

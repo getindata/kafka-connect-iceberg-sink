@@ -52,7 +52,7 @@ public class IcebergChangeConsumer {
         }
 
         Instant end = Instant.now();
-        LOGGER.info("Processed {} records in {} ms", records.size(), ChronoUnit.MILLIS.between(start, end));
+        LOGGER.debug("Processed {} records in {} ms", records.size(), ChronoUnit.MILLIS.between(start, end));
     }
 
     private Table loadIcebergTable(Catalog icebergCatalog, TableIdentifier tableId, IcebergChangeEvent sampleEvent) {

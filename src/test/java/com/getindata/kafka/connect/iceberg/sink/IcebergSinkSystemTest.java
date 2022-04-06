@@ -17,6 +17,8 @@ import org.apache.spark.sql.Row;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Network;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.lifecycle.Startables;
 import scala.collection.JavaConverters;
 import scala.collection.Seq;
@@ -42,47 +44,42 @@ import static com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig.
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.given;
 
+@Testcontainers
 class IcebergSinkSystemTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static KafkaContainer kafkaContainer;
-    private static SchemaRegistryContainer schemaRegistryContainer;
-    private static PostgresContainer postgresContainer;
-    private static DebeziumConnectContainer debeziumConnectContainer;
-    private static HttpClient httpClient;
-    private static S3MinioContainer s3MinioContainer;
-    private static SparkTestHelper sparkTestHelper;
+
+    private static final Network network = Network.newNetwork();
+
+    @Container
+    private static final S3MinioContainer s3MinioContainer  = new S3MinioContainer()
+            .withNetwork(network);
+
+    @Container
+    private static final KafkaContainer kafkaContainer = (KafkaContainer) new KafkaContainer()
+            .withNetwork(network);
+
+    @Container
+    private static final SchemaRegistryContainer schemaRegistryContainer = new SchemaRegistryContainer()
+            .withNetwork(network)
+            .withKafkaBoostrap(kafkaContainer.getInternalBootstrap());
+
+    @Container
+    private static final PostgresContainer postgresContainer = new PostgresContainer()
+            .withNetwork(network);
+
+    @Container
+    private static final DebeziumConnectContainer debeziumConnectContainer = new DebeziumConnectContainer()
+            .withNetwork(network)
+            .withKafkaBootstrap(kafkaContainer.getInternalBootstrap())
+            .withPlugin(getJarPath());
+
+    private static final HttpClient httpClient = HttpClient.newHttpClient();;
+    private static SparkTestHelper sparkTestHelper ;
     private static MinioTestHelper minioTestHelper;
     private static PostgresTestHelper postgresTestHelper;
 
     @BeforeAll
     static void setup() throws Exception {
-        Network network = Network.newNetwork();
-
-        s3MinioContainer = new S3MinioContainer()
-                .withNetwork(network);
-        kafkaContainer = new KafkaContainer();
-        kafkaContainer
-                .withNetwork(network);
-        schemaRegistryContainer = new SchemaRegistryContainer()
-                .withKafkaBoostrap(kafkaContainer.getInternalBootstrap())
-                .withNetwork(network);
-        postgresContainer = new PostgresContainer()
-                .withNetwork(network);
-        debeziumConnectContainer = new DebeziumConnectContainer()
-                .withNetwork(network)
-                .withKafkaBootstrap(kafkaContainer.getInternalBootstrap())
-                .withPlugin(getJarPath());
-
-        Startables
-                .deepStart(Stream.of(
-                        s3MinioContainer,
-                        kafkaContainer,
-                        schemaRegistryContainer,
-                        postgresContainer,
-                        debeziumConnectContainer)
-                ).join();
-
-        httpClient = HttpClient.newHttpClient();
         sparkTestHelper = new SparkTestHelper(s3MinioContainer.getUrl());
         minioTestHelper = new MinioTestHelper(s3MinioContainer.getUrl());
         postgresTestHelper = new PostgresTestHelper(postgresContainer.getJdbcUrl(), postgresContainer.getUser(), postgresContainer.getPassword());
@@ -205,7 +202,7 @@ class IcebergSinkSystemTest {
         return icebergConfig.toString();
     }
 
-    private static String getJarPath() throws URISyntaxException {
+    private static String getJarPath() {
         File dir = new File("./target");
         FileFilter fileFilter = new WildcardFileFilter("kafka-connect-iceberg-sink-*-shaded.jar");
         return dir.listFiles(fileFilter)[0].getAbsolutePath();
