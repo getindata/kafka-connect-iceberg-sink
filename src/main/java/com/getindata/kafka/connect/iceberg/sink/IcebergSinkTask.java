@@ -34,7 +34,7 @@ public class IcebergSinkTask extends SinkTask {
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        LOGGER.info("Received {} records", records.size());
+        LOGGER.debug("Received {} records", records.size());
         consumer.accept(records);
     }
 

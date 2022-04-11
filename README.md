@@ -69,6 +69,7 @@ docker run -it --name connect --net=host -p 8083:8083 \
 | table.namespace      | String  | default        | Table namespace. In Glue it will be used as database name                                                                          |
 | table.prefix         | String  | *empty string* | Prefix added to all table names                                                                                                    |
 | table.write-format   | String  | parquet        | Format used for Iceberg tables                                                                                                     |
+| iceberg.name         | String  | default        | Iceberg catalog name                                                                                                               |
 | iceberg.catalog-impl | String  | *null*         | Iceberg catalog implementation (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time    |
 | iceberg.type         | String  | *null*         | Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time)             |
 | iceberg.*            |         |                | All properties with this prefix will be passed to Iceberg Catalog implementation                                                   |
