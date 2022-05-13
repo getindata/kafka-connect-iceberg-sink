@@ -52,7 +52,7 @@ docker run -it --name connect --net=host -p 8083:8083 \
   -e BOOTSTRAP_SERVERS=localhost:9092 \
   -e CONNECT_TOPIC_CREATION_ENABLE=true \
   -v ~/.aws/config:/kafka/.aws/config \
-  -v ./target/kafka-connect-iceberg-sink-0.1-SNAPSHOT-shaded.jar:/kafka/connect/kafka-connect-iceberg-sink-0.1-SNAPSHOT-shaded.jar \
+  -v ./target/kafka-connect-iceberg-sink-0.1.1-SNAPSHOT-shaded.jar:/kafka/connect/kafka-connect-iceberg-sink-0.1.1-SNAPSHOT-shaded.jar \
   debezium/connect
 ```
 
@@ -85,48 +85,13 @@ AWS credentials can be passed:
 
 ### DDL support
 
-Full DDL support is not yet implemented, see below on supported commands and limitations.
+Creation of new tables and extending them with new columns is supported. Sink is not doing any operations that would affect multiple rows, because of that in case of table or column deletion no data is actually removed. This can be an issue when column is dropped and then recreated with a different type. This operation can crash the sink as it will try to write new data to a still exisitng column of a different data type.
 
-| Command                                       | Support | Comment                                                                                                                                                                          |
-|-----------------------------------------------|---------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| CREATE TABLE                                  | +       | Reflected only when data is added.                                                                                                                                               |
-| DROP TABLE                                    | !       | Does not remove structure nor data. Dropping and recreating a table with the same name is treated like modification. See below on related issues with ALTER.                     |
-| ALTER TABLE … ADD                             | +       | Reflected only when data is added.                                                                                                                                               |
-| ALTER TABLE .. DROP                           | !       | Does not remove structure nor data. Dropping and recreating a column with the same name is treated like modification. See below on related issues with ALTER.                    |
-| ALTER TABLE … ALTER COLUMN … TYPE             | !       | Reflected only when data is added. Supported only when type is compatible e.g. int → bigint, varchar(30) → varchar(50).                                                          | 
-| CREATE TABLE … (… NOT NULL …)                 | -       | All columns are marked as optional unless they are marked as primary key during table creation.                                                                                  |
-| ALTER TABLE … ALTER COLUMN … SET NOT NULL     | -       | see above                                                                                                                                                                        |
-| ALTER TABLE … ADD CONSTRAINT … PRIMARY KEY(…) | -       | Column that is optional cannot be changed to primary key. Sink will crash on any row update claiming that field cannot be used as identifier because it is not a required field. |
-
-### Support for partitioned tables
-
-Partitions are treated and reflected as completely separated tables. Example:
-
-Given such table in PostgreSQL
-
-```sql
-CREATE TABLE dbz_part_test_1 (
-    id int primary key,
-    value int
-) PARTITION BY RANGE (id);
-
-CREATE TABLE dbz_part_test_1_1_11 PARTITION OF dbz_part_test_1 
-    FOR VALUES FROM (1) TO (11);
-
-CREATE TABLE dbz_part_test_1_11_20 PARTITION OF dbz_part_test_1 
-    FOR VALUES FROM (11) TO (21);
-
-INSERT INTO dbz_part_test_1 VALUES(1, 1);
-INSERT INTO dbz_part_test_1 VALUES(12, 1);
-```
-
-Two tables will be created in Iceberg
-- prefix_postgres_public_dbz_part_test_1_1_11
-- prefix_postgres_public_dbz_part_test_1_11_20
+Similar problem is with changing optionality of a column. If it was not defined as required when table was first created, sink will not check if such constrain can be introduced and will ignore that.
 
 ### DML
 
-Row cannot be updated unless table has a primary key or defined replica identity.
+Rows cannot be updated nor removed unless primary key is defined. In case of deletion sink behavior is also dependent on upsert.keep-deletes option. When this option is set to true sink will leave a tombstone behind in a form of row containing only a primary key value and __deleted flat set to true. When option is set to false it will remove row entirely.
 
 ### Iceberg partitioning support
 
@@ -142,3 +107,99 @@ Any event produced by debezium source contains a source time at which the transa
 ```
 
 From this value day part is extracted and used as partition.
+
+## Debezium change event format support
+
+Kafka Connect Iceberg Sink is expecting events in a format of *Debezium change event*. It uses however only an *after* portion of that event and some metadata.
+Minimal fields needed for the sink to work are:
+
+Kafka event key:
+
+```json
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "int32",
+        "optional": false,
+        "field": "some_field"
+      }
+    ],
+    "optional": false,
+    "name": "some_event.Key"
+  },
+  "payload": {
+    "id": 1
+  }
+}
+```
+
+Kafka event value:
+
+```json
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "struct",
+        "fields": [
+          {
+            "type": "int64",
+            "optional": false,
+            "field": "field_name"
+          },
+          ...
+        ],
+        "optional": true,
+        "name": "some_event.Value",
+        "field": "after"
+      },
+      {
+        "type": "struct",
+        "fields": [
+          {
+            "type": "int64",
+            "optional": false,
+            "field": "ts_ms"
+          },
+          {
+            "type": "string",
+            "optional": false,
+            "field": "db"
+          },
+          {
+            "type": "string",
+            "optional": false,
+            "field": "table"
+          }
+        ],
+        "optional": false,
+        "name": "io.debezium.connector.postgresql.Source",
+        "field": "source"
+      },
+      {
+        "type": "string",
+        "optional": false,
+        "field": "op"
+      }
+    ],
+    "optional": false,
+    "name": "some_event.Envelope"
+  },
+  "payload": {
+    "before": null,
+    "after": {
+      "some_field": 1,
+      ...
+    },
+    "source": {
+      "ts_ms": 1645448938851,
+      "db": "some_source",
+      "table": "some_table"
+    },
+    "op": "c"
+  }
+}
+```
