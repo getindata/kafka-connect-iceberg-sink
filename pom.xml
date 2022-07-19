@@ -15,11 +15,9 @@
 
         <!-- versions -->
         <kafka.connect.version>3.1.0</kafka.connect.version>
-        <iceberg-spark-runtime.version>0.13.2</iceberg-spark-runtime.version>
-        <spark.version>3.2.1</spark.version>
-        <debezium.version>1.8.1.Final</debezium.version>
-        <parquet.version>1.12.2</parquet.version>
-        <hadoop.version>3.3.1</hadoop.version>
+        <iceberg.version>0.14.0</iceberg.version>
+        <debezium.version>1.9.5.Final</debezium.version>
+        <hadoop.version>3.3.3</hadoop.version>
         <awssdk.version>2.17.131</awssdk.version>
         <!-- Have to use earlier version due to Spark dependency: Scala module 2.12.3 requires Jackson Databind version >= 2.12.0 and < 2.13.0 -->
         <!-- jackson is also provided by kafka connect runtime -->
@@ -35,6 +33,7 @@
         <postgresql.version>42.3.3</postgresql.version>
         <minio.version>8.3.6</minio.version>
         <awaitility.version>4.1.1</awaitility.version>
+        <spark.version>3.2.2</spark.version>
         <fest-assert.version>1.4</fest-assert.version>
 
         <!-- plugins -->
@@ -74,41 +73,13 @@
         <dependency>
             <groupId>org.apache.iceberg</groupId>
             <artifactId>iceberg-spark-runtime-3.2_2.12</artifactId>
-            <version>${iceberg-spark-runtime.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.12</artifactId>
-            <version>${spark.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-client-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.hadoop</groupId>
-                    <artifactId>hadoop-client-runtime</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-catalyst_2.12</artifactId>
-            <version>${spark.version}</version>
+            <version>${iceberg.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-core</artifactId>
             <version>${debezium.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.parquet</groupId>
-            <artifactId>parquet-hadoop-bundle</artifactId>
-            <version>${parquet.version}</version>
         </dependency>
 
         <dependency>
@@ -246,6 +217,22 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.12</artifactId>
+            <version>${spark.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-client-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-client-runtime</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.12</artifactId>

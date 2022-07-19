@@ -2,9 +2,9 @@
 
 ## [Unreleased]
 
-- Added Spark core,catalyst as compile dependencies. Needed for writing file based HadoopCatalog
 - Replaced maven-shade plugin with maven-assembly. To add hadoop default configuration files
-- Updated iceberg-spark-runtime.version to 0.13.2
+- Integrated updates from https://github.com/memiiso/debezium-server-iceberg
+- - Updated Iceberg to 0.14.0
 
 ## [0.1.3] - 2022-04-11
 
