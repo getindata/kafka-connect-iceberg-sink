@@ -2,11 +2,7 @@ package com.getindata.kafka.connect.iceberg.sink;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.getindata.kafka.connect.iceberg.sink.testcontainers.DebeziumConnectContainer;
-import com.getindata.kafka.connect.iceberg.sink.testcontainers.KafkaContainer;
-import com.getindata.kafka.connect.iceberg.sink.testcontainers.PostgresContainer;
-import com.getindata.kafka.connect.iceberg.sink.testcontainers.S3MinioContainer;
-import com.getindata.kafka.connect.iceberg.sink.testcontainers.SchemaRegistryContainer;
+import com.getindata.kafka.connect.iceberg.sink.testcontainers.*;
 import com.getindata.kafka.connect.iceberg.sink.testresources.MinioTestHelper;
 import com.getindata.kafka.connect.iceberg.sink.testresources.PostgresTestHelper;
 import com.getindata.kafka.connect.iceberg.sink.testresources.SparkTestHelper;
@@ -19,9 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.Network;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.lifecycle.Startables;
-import scala.collection.JavaConverters;
-import scala.collection.Seq;
+import scala.collection.immutable.Seq;
+import scala.jdk.javaapi.CollectionConverters;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -31,13 +26,11 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig.TABLE_NAMESPACE;
 import static com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig.TABLE_PREFIX;
@@ -51,7 +44,7 @@ class IcebergSinkSystemTest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    private static final S3MinioContainer s3MinioContainer  = new S3MinioContainer()
+    private static final S3MinioContainer s3MinioContainer = new S3MinioContainer()
             .withNetwork(network);
 
     @Container
@@ -73,8 +66,9 @@ class IcebergSinkSystemTest {
             .withKafkaBootstrap(kafkaContainer.getInternalBootstrap())
             .withPlugin(getJarPath());
 
-    private static final HttpClient httpClient = HttpClient.newHttpClient();;
-    private static SparkTestHelper sparkTestHelper ;
+    private static final HttpClient httpClient = HttpClient.newHttpClient();
+    ;
+    private static SparkTestHelper sparkTestHelper;
     private static MinioTestHelper minioTestHelper;
     private static PostgresTestHelper postgresTestHelper;
 
@@ -98,7 +92,7 @@ class IcebergSinkSystemTest {
 
         Dataset<Row> result = sparkTestHelper.query(query);
         assertThat(result.count()).isEqualTo(1);
-        List<String> row = JavaConverters.seqAsJavaList(JavaConverters.seqAsJavaList(result.getRows(1, 0)).get(1));
+        List<String> row = CollectionConverters.asJava(CollectionConverters.asJava(result.getRows(1, 0)).get(1));
         assertThat(row.get(0)).isEqualTo("123");
         assertThat(row.get(1)).isEqualTo("1");
         assertThat(row.get(2)).isEqualTo("ABC");
@@ -151,8 +145,8 @@ class IcebergSinkSystemTest {
     }
 
     private Map<String, List<String>> toMapById(Seq<Seq<String>> rows) {
-        return JavaConverters.seqAsJavaList(rows).stream()
-                .map(JavaConverters::seqAsJavaList)
+        return CollectionConverters.asJava(rows).stream()
+                .map(CollectionConverters::asJava)
                 .collect(Collectors.toMap(e -> e.get(1), e -> e));
     }
 

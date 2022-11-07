@@ -15,7 +15,7 @@
 
         <!-- versions -->
         <kafka.connect.version>3.1.0</kafka.connect.version>
-        <iceberg.version>0.14.0</iceberg.version>
+        <iceberg.version>1.0.0</iceberg.version>
         <debezium.version>1.9.5.Final</debezium.version>
         <hadoop.version>3.3.3</hadoop.version>
         <awssdk.version>2.17.131</awssdk.version>
@@ -33,7 +33,7 @@
         <postgresql.version>42.3.3</postgresql.version>
         <minio.version>8.3.6</minio.version>
         <awaitility.version>4.1.1</awaitility.version>
-        <spark.version>3.2.2</spark.version>
+        <spark.version>3.3.1</spark.version>
         <fest-assert.version>1.4</fest-assert.version>
 
         <!-- plugins -->
@@ -72,7 +72,7 @@
 
         <dependency>
             <groupId>org.apache.iceberg</groupId>
-            <artifactId>iceberg-spark-runtime-3.2_2.12</artifactId>
+            <artifactId>iceberg-spark-runtime-3.3_2.13</artifactId>
             <version>${iceberg.version}</version>
         </dependency>
 
@@ -219,7 +219,7 @@
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.12</artifactId>
+            <artifactId>spark-core_2.13</artifactId>
             <version>${spark.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -235,7 +235,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.12</artifactId>
+            <artifactId>spark-sql_2.13</artifactId>
             <version>${spark.version}</version>
             <scope>test</scope>
         </dependency>
