@@ -18,7 +18,7 @@
         <iceberg.version>1.0.0</iceberg.version>
         <debezium.version>1.9.5.Final</debezium.version>
         <hadoop.version>3.3.3</hadoop.version>
-        <awssdk.version>2.17.131</awssdk.version>
+        <awssdk.version>2.17.295</awssdk.version>
         <!-- Have to use earlier version due to Spark dependency: Scala module 2.12.3 requires Jackson Databind version >= 2.12.0 and < 2.13.0 -->
         <!-- jackson is also provided by kafka connect runtime -->
         <jackson.version>2.12.3</jackson.version>
