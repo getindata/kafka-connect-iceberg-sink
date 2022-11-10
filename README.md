@@ -77,30 +77,169 @@ docker run -it --name connect --net=host -p 8083:8083 \
   debezium/connect
 ```
 
-### Configuration reference
+### Strimzi
 
-| Key                  | Type    | Default value  | Description                                                                                                                        |
-|----------------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------|
-| upsert               | boolean | true           | When *true* Iceberg rows will be updated based on table primary key. When *false* all modification will be added as separate rows. |
-| upsert.keep-deletes  | boolean | true           | When *true* delete operation will leave a tombstone that will have only a primary key and *__deleted** flag set to true            |
-| upsert.dedup-column  | String  | __source_ts_ms | Column used to check which state is newer during upsert                                                                            | 
-| upsert.op-column     | String  | __op           | Column used to check which state is newer during upsert when *upsert.dedup-column* is not enough to resolve                        |
-| allow-field-addition | boolean | true           | When *true* sink will be adding new columns to Iceberg tables on schema changes                                                    |
-| table.auto-create    | boolean | false          | When *true* sink will automatically create new Iceberg tables                                                                      |
-| table.namespace      | String  | default        | Table namespace. In Glue it will be used as database name                                                                          |
-| table.prefix         | String  | *empty string* | Prefix added to all table names                                                                                                    |
-| table.write-format   | String  | parquet        | Format used for Iceberg tables                                                                                                     |
-| iceberg.name         | String  | default        | Iceberg catalog name                                                                                                               |
-| iceberg.catalog-impl | String  | *null*         | Iceberg catalog implementation (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time    |
-| iceberg.type         | String  | *null*         | Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time)             |
-| iceberg.*            |         |                | All properties with this prefix will be passed to Iceberg Catalog implementation                                                   |
+KafkaConnect:
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 3.3.1
+  replicas: 1
+  bootstrapServers: kafka-cluster-kafka-bootstrap:9093
+  tls:
+    trustedCertificates:
+      - secretName: kafka-cluster-cluster-ca-cert
+        certificate: ca.crt
+  logging:
+    type: inline
+    loggers:
+      log4j.rootLogger: "INFO"
+      log4j.logger.com.getindata.kafka.connect.iceberg.sink.IcebergSinkTask: "DEBUG"
+      log4j.logger.org.apache.hadoop.io.compress.CodecPool: "WARN"
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: connect-metrics
+        key: metrics-config.yml
+  config:
+    group.id: my-connect-cluster
+    offset.storage.topic: my-connect-cluster-offsets
+    config.storage.topic: my-connect-cluster-configs
+    status.storage.topic: my-connect-cluster-status
+    # -1 means it will use the default replication factor configured in the broker
+    config.storage.replication.factor: -1
+    offset.storage.replication.factor: -1
+    status.storage.replication.factor: -1
+    config.providers: file,secret,configmap
+    config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+    config.providers.secret.class: io.strimzi.kafka.KubernetesSecretConfigProvider
+    config.providers.configmap.class: io.strimzi.kafka.KubernetesConfigMapConfigProvider
+  build:
+      output:
+        type: docker
+        image: <yourdockerregistry>
+        pushSecret: <yourpushSecret>
+      plugins:
+        - name: debezium-postgresql
+          artifacts:
+            - type: zip
+              url: https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.0.0.Final/debezium-connector-postgres-2.0.0.Final-plugin.zip
+        - name: iceberg
+          artifacts:
+            - type: zip
+              url: https://github.com/TIKI-Institut/kafka-connect-iceberg-sink/releases/download/0.1.4-SNAPSHOT-hadoop-catalog-r3/kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip
+  resources:
+    requests:
+      cpu: "0.1"
+      memory: 512Mi
+    limits:
+      cpu: "3"
+      memory: 2Gi
+  template:
+    connectContainer:
+      env:
+        # important for using AWS s3 client sdk
+        - name: AWS_REGION
+          value: "none"
+```
 
-### AWS authentication
+KafkaConnector Debezium Source
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: postgres-source-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 1
+  config:
+    tasks.max: 1
+    topic.prefix: ""
+    database.hostname: <databasehost>
+    database.port: 5432
+    database.user: <dbUser>
+    database.password: <dbPassword>
+    database.dbname: <databaseName>
+    database.server.name: <databaseName>
+    transforms: unwrap
+    transforms.unwrap.type: io.debezium.transforms.ExtractNewRecordState
+    transforms.unwrap.add.fields: op,table,source.ts_ms,db
+    transforms.unwrap.add.headers: db
+    transforms.unwrap.delete.handling.mode: rewrite
+    transforms.unwrap.drop.tombstones: true
+    offset.flush.interval.ms: 0
+    max.batch.size: 4096 # default: 2048
+    max.queue.size: 16384 # default: 8192
+```
+
+KafkaConnector Iceberg Sink:
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: iceberg-debezium-sink-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+  annotations:
+    strimzi.io/restart: "true"
+spec:
+  class: com.getindata.kafka.connect.iceberg.sink.IcebergSink
+  tasksMax: 1
+  config:
+    topics: "<topic>"
+    table.namespace: ""
+    table.prefix: ""
+    table.auto-create: true
+    table.write-format: "parquet"
+    iceberg.name: "mycatalog"
+    # Nessie catalog
+    iceberg.catalog-impl: "org.apache.iceberg.nessie.NessieCatalog"
+    iceberg.uri: "http://nessie:19120/api/v1"
+    iceberg.ref: "main"
+    iceberg.authentication.type: "NONE"
+    # Warehouse
+    iceberg.warehouse: "s3://warehouse"
+    # Minio S3
+    iceberg.io-impl: "org.apache.iceberg.aws.s3.S3FileIO"
+    iceberg.s3.endpoint: "http://minio:9000"
+    iceberg.s3.path-style-access: true
+    iceberg.s3.access-key-id: ''
+    iceberg.s3.secret-access-key: ''
+    # Batch size tuning
+    # See: https://stackoverflow.com/questions/51753883/increase-the-number-of-messages-read-by-a-kafka-consumer-in-a-single-poll
+    # And the key prefix in Note: https://stackoverflow.com/a/66551961/2688589
+    consumer.override.max.poll.records: 2000 # default: 500
+```
+
+### AWS authentication 
+
+#### Hadoop s3a
 
 AWS credentials can be passed:
 1. As part of sink configuration under keys `iceberg.fs.s3a.access.key` and `iceberg.fs.s3a.secret.key`
 2. Using enviornment variables `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY`
 3. As ~/.aws/config file
+
+#### Iceberg S3FileIO
+
+https://iceberg.apache.org/docs/latest/aws/#s3-fileio
+
+```
+iceberg.warehouse: "s3://warehouse"
+iceberg.io-impl: "org.apache.iceberg.aws.s3.S3FileIO"
+iceberg.s3.endpoint: "http://minio:9000"
+iceberg.s3.path-style-access: true
+iceberg.s3.access-key-id: ''
+iceberg.s3.secret-access-key: ''
+```
 
 ## Limitations
 
