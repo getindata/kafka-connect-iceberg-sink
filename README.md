@@ -10,7 +10,28 @@ mvn clean package
 
 ## Usage
 
-1. Copy `kafka-connect-iceberg-sink-0.1-SNAPSHOT-shaded.jar` into Kafka Connect plugins directory. [Kafka Connect installing plugins](https://docs.confluent.io/home/connect/self-managed/userguide.html#connect-installing-plugins)
+### Configuration reference
+
+| Key                  | Type    | Default value  | Description                                                                                                                        |
+|----------------------|---------|----------------|------------------------------------------------------------------------------------------------------------------------------------|
+| upsert               | boolean | true           | When *true* Iceberg rows will be updated based on table primary key. When *false* all modification will be added as separate rows. |
+| upsert.keep-deletes  | boolean | true           | When *true* delete operation will leave a tombstone that will have only a primary key and *__deleted** flag set to true            |
+| upsert.dedup-column  | String  | __source_ts_ms | Column used to check which state is newer during upsert                                                                            | 
+| upsert.op-column     | String  | __op           | Column used to check which state is newer during upsert when *upsert.dedup-column* is not enough to resolve                        |
+| allow-field-addition | boolean | true           | When *true* sink will be adding new columns to Iceberg tables on schema changes                                                    |
+| table.auto-create    | boolean | false          | When *true* sink will automatically create new Iceberg tables                                                                      |
+| table.namespace      | String  | default        | Table namespace. In Glue it will be used as database name                                                                          |
+| table.prefix         | String  | *empty string* | Prefix added to all table names                                                                                                    |
+| table.write-format   | String  | parquet        | Format used for Iceberg tables                                                                                                     |
+| iceberg.name         | String  | default        | Iceberg catalog name                                                                                                               |
+| iceberg.catalog-impl | String  | *null*         | Iceberg catalog implementation (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time    |
+| iceberg.type         | String  | *null*         | Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time)             |
+| iceberg.*            |         |                | All properties with this prefix will be passed to Iceberg Catalog implementation                                                   |
+
+
+### REST / Manual based installation
+
+1. Copy content of `kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip` into Kafka Connect plugins directory. [Kafka Connect installing plugins](https://docs.confluent.io/home/connect/self-managed/userguide.html#connect-installing-plugins)
 
 2. POST `<kafka_connect_host>:<kafka_connect_port>/connectors`
 ```json
@@ -52,7 +73,7 @@ docker run -it --name connect --net=host -p 8083:8083 \
   -e BOOTSTRAP_SERVERS=localhost:9092 \
   -e CONNECT_TOPIC_CREATION_ENABLE=true \
   -v ~/.aws/config:/kafka/.aws/config \
-  -v ./target/kafka-connect-iceberg-sink-0.1.1-SNAPSHOT-shaded.jar:/kafka/connect/kafka-connect-iceberg-sink-0.1.1-SNAPSHOT-shaded.jar \
+  -v ./target/plugin/kafka-connect-iceberg-sink:/kafka/connect/kafka-connect-iceberg-sink \
   debezium/connect
 ```
 

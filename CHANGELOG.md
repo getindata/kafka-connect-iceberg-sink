@@ -4,8 +4,9 @@
 
 - Replaced maven-shade plugin with maven-assembly. To add hadoop default configuration files
 - Integrated updates from https://github.com/memiiso/debezium-server-iceberg
-- - Updated Iceberg to 1.0.0
-- - Updated to Iceberg Spark 3.3 runtime
+- Updated Iceberg to 1.0.0
+- Updated to Iceberg Spark 3.3 runtime
+- Updated to Kafka Connect API 3.2.3
 
 ## [0.1.3] - 2022-04-11
 

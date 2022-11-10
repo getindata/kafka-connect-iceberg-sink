@@ -14,14 +14,14 @@
         <maven.compiler.target>11</maven.compiler.target>
 
         <!-- versions -->
-        <kafka.connect.version>3.1.0</kafka.connect.version>
+        <kafka.connect.version>3.2.3</kafka.connect.version>
         <iceberg.version>1.0.0</iceberg.version>
         <debezium.version>1.9.5.Final</debezium.version>
         <hadoop.version>3.3.3</hadoop.version>
         <awssdk.version>2.17.295</awssdk.version>
-        <!-- Have to use earlier version due to Spark dependency: Scala module 2.12.3 requires Jackson Databind version >= 2.12.0 and < 2.13.0 -->
-        <!-- jackson is also provided by kafka connect runtime -->
-        <jackson.version>2.12.3</jackson.version>
+        <!-- spark 3.3.1_2.13 includes jackson 2.13.4 which requires Jackson Databind version >= 2.13.0 and < 2.14.0 -->
+        <!-- jackson is also provided by kafka connect-runtime -> pinning to the same version -->
+        <jackson.version>2.13.3</jackson.version>
 
         <!-- utils -->
         <slf4j-api.version>1.7.36</slf4j-api.version>
@@ -301,6 +301,19 @@
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptors>
@@ -313,6 +326,26 @@
                         <phase>package</phase> <!-- bind to the packaging phase -->
                         <goals>
                             <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-assembly</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <tasks>
+                                <echo message="unpack plugin assembly" />
+                                <unzip src="target/kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip" dest="target/plugin" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -197,8 +197,6 @@ class IcebergSinkSystemTest {
     }
 
     private static String getJarPath() {
-        File dir = new File("./target");
-        FileFilter fileFilter = new WildcardFileFilter("kafka-connect-iceberg-sink-*-shaded.jar");
-        return dir.listFiles(fileFilter)[0].getAbsolutePath();
+        return new File("./target/plugin/kafka-connect-iceberg-sink").getAbsolutePath();
     }
 }
