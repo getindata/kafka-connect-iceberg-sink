@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Added support for Hive metastore catalog
+
 ## [0.1.3] - 2022-04-11
 
 -   Logger levels changes
