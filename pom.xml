@@ -334,15 +334,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
                 <executions>
                     <execution>
                         <id>unpack-assembly</id>
                         <phase>package</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <echo message="unpack plugin assembly" />
-                                <unzip src="target/kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip" dest="target/plugin" />
-                            </tasks>
+                                <unzip dest="target/plugin">
+                                    <fileset dir="${project.build.directory}">
+                                        <filename regex="kafka-connect-iceberg-sink-.*-plugin.zip" />
+                                    </fileset>
+                                </unzip>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>

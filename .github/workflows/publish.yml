@@ -39,7 +39,7 @@ jobs:
         with:
           name: Release ${{ steps.get_package_version.outputs.package_version }}
           tag: ${{ steps.get_package_version.outputs.package_version }}
-          artifacts: "target/kafka-connect-iceberg-sink-*-shaded.jar"
+          artifacts: "target/kafka-connect-iceberg-sink-*-plugin.zip"
           bodyFile: ./release_body.md
           token: ${{ secrets.GITHUB_TOKEN }}
 
