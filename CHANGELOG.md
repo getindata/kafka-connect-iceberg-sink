@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Added support for Hive metastore catalog
 - Replaced maven-shade plugin with maven-assembly. To add hadoop default configuration files
 - Integrated updates from https://github.com/memiiso/debezium-server-iceberg
 - Updated Iceberg to 1.0.0

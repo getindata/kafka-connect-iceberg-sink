@@ -219,7 +219,7 @@ spec:
     consumer.override.max.poll.records: 2000 # default: 500
 ```
 
-### AWS authentication 
+### AWS authentication
 
 #### Hadoop s3a
 
@@ -239,6 +239,53 @@ iceberg.s3.endpoint: "http://minio:9000"
 iceberg.s3.path-style-access: true
 iceberg.s3.access-key-id: ''
 iceberg.s3.secret-access-key: ''
+```
+
+### Catalogs
+
+Using `GlueCatalog`
+
+```json
+{
+  "name": "iceberg-sink",
+  "config": {
+    "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
+    "iceberg.catalog-impl": "org.apache.iceberg.aws.glue.GlueCatalog",
+    "iceberg.warehouse": "s3a://my_bucket/iceberg",
+    "iceberg.fs.s3a.access.key": "my-aws-access-key",
+    "iceberg.fs.s3a.secret.key": "my-secret-access-key",
+    ...
+  }
+}
+```
+
+Using `HadoopCatalog`
+
+```json
+{
+  "name": "iceberg-sink",
+  "config": {
+    "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
+    "iceberg.catalog-impl": "org.apache.iceberg.hadoop.HadoopCatalog",
+    "iceberg.warehouse": "s3a://my_bucket/iceberg",
+    ...
+  }
+}
+```
+
+Using `HiveCatalog`
+
+```json
+{
+  "name": "iceberg-sink",
+  "config": {
+    "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
+    "iceberg.catalog-impl": "org.apache.iceberg.hive.HiveCatalog",
+    "iceberg.warehouse": "s3a://my_bucket/iceberg",
+    "iceberg.uri": "thrift://localhost:9083",
+    ...
+  }
+}
 ```
 
 ## Limitations
