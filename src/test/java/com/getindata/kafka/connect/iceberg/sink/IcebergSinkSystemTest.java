@@ -7,7 +7,6 @@ import com.getindata.kafka.connect.iceberg.sink.testresources.MinioTestHelper;
 import com.getindata.kafka.connect.iceberg.sink.testresources.PostgresTestHelper;
 import com.getindata.kafka.connect.iceberg.sink.testresources.SparkTestHelper;
 import com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,7 +18,6 @@ import scala.collection.immutable.Seq;
 import scala.jdk.javaapi.CollectionConverters;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -67,7 +65,6 @@ class IcebergSinkSystemTest {
             .withPlugin(getJarPath());
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
-    ;
     private static SparkTestHelper sparkTestHelper;
     private static MinioTestHelper minioTestHelper;
     private static PostgresTestHelper postgresTestHelper;
