@@ -184,6 +184,7 @@ class IcebergSinkSystemTest {
                 "    \"database.server.name\": \"postgres\",\n" +
                 "    \"slot.name\": \"dbzkafkaconnect\",\n" +
                 "    \"plugin.name\": \"pgoutput\",\n" +
+                "    \"topic.prefix\": \"postgres\",\n" +
                 "    \"table.include.list\": \"public.dbz_test,public.dbz_test1,public.dbz_test2\"\n" +
                 "  }\n" +
                 "}";
