@@ -81,6 +81,53 @@ AWS credentials can be passed:
 2. Using enviornment variables `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY`
 3. As ~/.aws/config file
 
+### Catalogs
+
+Using `GlueCatalog`
+
+```json
+{
+  "name": "iceberg-sink",
+  "config": {
+    "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
+    "iceberg.catalog-impl": "org.apache.iceberg.aws.glue.GlueCatalog",
+    "iceberg.warehouse": "s3a://my_bucket/iceberg",
+    "iceberg.fs.s3a.access.key": "my-aws-access-key",
+    "iceberg.fs.s3a.secret.key": "my-secret-access-key",
+    ...
+  }
+}
+```
+
+Using `HadoopCatalog`
+
+```json
+{
+  "name": "iceberg-sink",
+  "config": {
+    "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
+    "iceberg.catalog-impl": "org.apache.iceberg.hadoop.HadoopCatalog",
+    "iceberg.warehouse": "s3a://my_bucket/iceberg",
+    ...
+  }
+}
+```
+
+Using `HiveCatalog`
+
+```json
+{
+  "name": "iceberg-sink",
+  "config": {
+    "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
+    "iceberg.catalog-impl": "org.apache.iceberg.hive.HiveCatalog",
+    "iceberg.warehouse": "s3a://my_bucket/iceberg",
+    "iceberg.uri": "thrift://localhost:9083",
+    ...
+  }
+}
+```
+
 ## Limitations
 
 ### DDL support
