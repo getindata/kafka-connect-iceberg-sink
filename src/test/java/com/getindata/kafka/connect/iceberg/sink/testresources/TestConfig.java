@@ -13,12 +13,12 @@ public class TestConfig {
     public static final String TABLE_NAMESPACE = "debeziumevents";
     public static final String TABLE_PREFIX = "debeziumcdc_";
     public static final String WRITE_FORMAT = "parquet";
-    public static final String DEBEZIUM_CONNECT_IMAGE = "debezium/connect";
+    public static final String DEBEZIUM_CONNECT_IMAGE = "debezium/connect:1.9";
     public static final String POSTGRES_IMAGE = "postgres";
     public static final String MINIO_IMAGE = "minio/minio:latest";
-    public static final String ZOOKEEPER_IMAGE = "confluentinc/cp-zookeeper:7.0.1";
-    public static final String KAFKA_IMAGE = "confluentinc/cp-kafka:7.0.1";
-    public static final String SCHEMA_REGISTRY_IMAGE = "confluentinc/cp-schema-registry:7.0.1";
+    public static final String ZOOKEEPER_IMAGE = "confluentinc/cp-zookeeper:7.2.2";
+    public static final String KAFKA_IMAGE = "confluentinc/cp-kafka:7.2.2";
+    public static final String SCHEMA_REGISTRY_IMAGE = "confluentinc/cp-schema-registry:7.2.2";
 
     public static Builder builder() {
         return new Builder();

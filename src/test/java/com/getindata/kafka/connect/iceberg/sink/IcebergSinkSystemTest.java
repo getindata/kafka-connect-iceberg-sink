@@ -62,7 +62,7 @@ class IcebergSinkSystemTest {
     private static final DebeziumConnectContainer debeziumConnectContainer = new DebeziumConnectContainer()
             .withNetwork(network)
             .withKafkaBootstrap(kafkaContainer.getInternalBootstrap())
-            .withPlugin(getJarPath());
+            .withPlugin(getPluginPath());
 
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private static SparkTestHelper sparkTestHelper;
@@ -194,7 +194,7 @@ class IcebergSinkSystemTest {
         return icebergConfig.toString();
     }
 
-    private static String getJarPath() {
+    private static String getPluginPath() {
         return new File("./target/plugin/kafka-connect-iceberg-sink").getAbsolutePath();
     }
 }
