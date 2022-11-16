@@ -26,7 +26,7 @@ public class SchemaRegistryContainer extends GenericContainer<SchemaRegistryCont
     }
 
     public String getUrl() {
-        return format("http://%s:%d", this.getContainerIpAddress(), this.getMappedPort(SCHEMA_REGISTRY_INTERNAL_PORT));
+        return format("http://%s:%d", this.getHost(), this.getMappedPort(SCHEMA_REGISTRY_INTERNAL_PORT));
     }
 
     public String getInternalUrl() {
