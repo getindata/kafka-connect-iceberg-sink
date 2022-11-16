@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-11-16
+
+-   Added support for Hive metastore catalog
+-   Replaced maven-shade plugin with maven-assembly. To add hadoop default configuration files
+-   Integrated updates from <https://github.com/memiiso/debezium-server-iceberg>
+-   Updated Iceberg to 1.0.0
+-   Updated to Kafka Connect API 3.2.2
+
+### Version Compatibility
+
+This Iceberg Sink depends on a Spark 3.2 Runtime, which depends on a specific jackson minor version. 
+Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor release (2.13)
+
 ## [0.1.3] - 2022-04-11
 
 -   Logger levels changes
@@ -13,7 +26,9 @@
 
 -   First release
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.1.3...HEAD
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.0...HEAD
+
+[0.2.0]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.1.3...0.2.0
 
 [0.1.3]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.1.2...0.1.3
 

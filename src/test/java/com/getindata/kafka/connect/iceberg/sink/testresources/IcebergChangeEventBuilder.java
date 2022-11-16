@@ -39,14 +39,14 @@ public class IcebergChangeEventBuilder {
   public IcebergChangeEventBuilder addField(String parentFieldName, String name, String val) {
     ObjectNode nestedField = JsonNodeFactory.instance.objectNode();
     nestedField.put(name, val);
-    this.payload.put(parentFieldName, nestedField);
+    this.payload.set(parentFieldName, nestedField);
     return this;
   }
 
   public IcebergChangeEventBuilder addField(String parentFieldName, String name, int val) {
     ObjectNode nestedField = JsonNodeFactory.instance.objectNode();
     nestedField.put(name, val);
-    this.payload.put(parentFieldName, nestedField);
+    this.payload.set(parentFieldName, nestedField);
     return this;
   }
 
@@ -57,7 +57,7 @@ public class IcebergChangeEventBuilder {
       nestedField = (ObjectNode) this.payload.get(parentFieldName);
     }
     nestedField.put(name, val);
-    this.payload.put(parentFieldName, nestedField);
+    this.payload.set(parentFieldName, nestedField);
     return this;
   }
 
