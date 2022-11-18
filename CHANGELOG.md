@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   removed 'table.write-format', can be replaced with 'iceberg.table-default.write.format.default'
+
 ## [0.2.0] - 2022-11-16
 
 -   Added support for Hive metastore catalog
