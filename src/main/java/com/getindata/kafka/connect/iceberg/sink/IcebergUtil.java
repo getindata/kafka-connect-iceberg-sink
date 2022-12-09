@@ -35,7 +35,7 @@ public class IcebergUtil {
   protected static final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
   public static Table createIcebergTable(Catalog icebergCatalog, TableIdentifier tableIdentifier,
-                                         Schema schema, String writeFormat, boolean partition) {
+                                         Schema schema, boolean partition) {
 
     LOGGER.info("Creating table:'{}'\nschema:{}\nrowIdentifier:{}", tableIdentifier, schema,
         schema.identifierFieldNames());
@@ -49,7 +49,6 @@ public class IcebergUtil {
 
     return icebergCatalog.buildTable(tableIdentifier, schema)
         .withProperty(FORMAT_VERSION, "2")
-        .withProperty(DEFAULT_FILE_FORMAT, writeFormat.toLowerCase(Locale.ENGLISH))
         .withSortOrder(IcebergUtil.getIdentifierFieldsAsSortOrder(schema))
         .withPartitionSpec(ps)
         .create();

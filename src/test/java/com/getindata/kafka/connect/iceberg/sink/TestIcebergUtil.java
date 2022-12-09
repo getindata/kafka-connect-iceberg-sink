@@ -11,22 +11,27 @@ package com.getindata.kafka.connect.iceberg.sink;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig;
 import io.debezium.serde.DebeziumSerdes;
 import io.debezium.util.Testing;
+import org.apache.iceberg.FileFormat;
 import org.apache.iceberg.Schema;
+import org.apache.iceberg.Table;
+import org.apache.iceberg.catalog.Catalog;
+import org.apache.iceberg.catalog.TableIdentifier;
 import org.apache.iceberg.data.GenericRecord;
 import org.apache.iceberg.types.Types;
 import org.apache.kafka.common.serialization.Serde;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TestIcebergUtil {
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -126,5 +131,25 @@ class TestIcebergUtil {
         assertFalse(deserializedSchema.has("schema"));
     }
 
+    @Test
+    public void createIcebergTablesWithCustomProperties(@TempDir Path localWarehouseDir) {
+        IcebergSinkConfiguration config = TestConfig.builder()
+                .withLocalCatalog(localWarehouseDir)
+                .withUpsert(false)
+                .withCustomCatalogProperty("table-default.write.format.default", "orc")
+                .build();
 
+        Catalog catalog = IcebergCatalogFactory.create(config);
+
+        Schema schema = new Schema(
+                List.of(
+                        Types.NestedField.required(1, "id", Types.IntegerType.get()),
+                        Types.NestedField.required(2, "data", Types.StringType.get())),
+                Set.of(1)
+        );
+
+        Table table1 = IcebergUtil.createIcebergTable(catalog, TableIdentifier.of("test", "test"), schema, false);
+
+        assertTrue(IcebergUtil.getTableFileFormat(table1) == FileFormat.ORC);
+    }
 }
