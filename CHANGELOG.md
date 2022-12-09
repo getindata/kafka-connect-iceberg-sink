@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2022-12-09
+
+-   removed 'table.write-format', can be replaced with 'iceberg.table-default.write.format.default'
+
 ## [0.2.0] - 2022-11-16
 
 -   Added support for Hive metastore catalog
@@ -26,7 +30,9 @@ Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor 
 
 -   First release
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.1...HEAD
+
+[0.2.1]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.0...0.2.1
 
 [0.2.0]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.1.3...0.2.0
 

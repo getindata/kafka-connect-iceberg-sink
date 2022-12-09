@@ -16,28 +16,29 @@ import org.apache.iceberg.catalog.TableIdentifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig.TABLE_NAMESPACE;
 import static com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig.TABLE_PREFIX;
-import static com.getindata.kafka.connect.iceberg.sink.testresources.TestConfig.WRITE_FORMAT;
 
+@Testcontainers
 class IcebergTableOperatorTest {
     private static final String TEST_TABLE = "inventory.test_table_operator";
 
     private static IcebergTableOperator icebergTableOperator;
-    private static S3MinioContainer s3MinioContainer;
+    @Container
+    private static final S3MinioContainer s3MinioContainer = new S3MinioContainer();
     private static Catalog icebergCatalog;
     private static SparkTestHelper sparkTestHelper;
 
     @BeforeAll
-    private static void setup() throws Exception {
-        s3MinioContainer = new S3MinioContainer();
-        s3MinioContainer.start();
+    static void setup() throws Exception {
         new MinioTestHelper(s3MinioContainer.getUrl()).createDefaultBucket();
-        IcebergSinkConfiguration config = TestConfig.builder().withS3Url(s3MinioContainer.getUrl()).withUpsert(false).build();
+        IcebergSinkConfiguration config = TestConfig.builder().withS3(s3MinioContainer.getUrl()).withUpsert(false).build();
         icebergCatalog = IcebergCatalogFactory.create(config);
         icebergTableOperator = IcebergTableOperatorFactory.create(config);
         sparkTestHelper = new SparkTestHelper(s3MinioContainer.getUrl());
@@ -45,7 +46,7 @@ class IcebergTableOperatorTest {
 
     public Table createTable(IcebergChangeEvent sampleEvent) {
         final TableIdentifier tableId = TableIdentifier.of(Namespace.of(TABLE_NAMESPACE), TABLE_PREFIX + sampleEvent.destinationTable());
-        return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), WRITE_FORMAT, false);
+        return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), false);
     }
 
     @Test

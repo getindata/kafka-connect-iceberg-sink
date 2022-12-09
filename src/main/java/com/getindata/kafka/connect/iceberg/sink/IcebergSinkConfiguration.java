@@ -20,7 +20,6 @@ public class IcebergSinkConfiguration {
     public static final String TABLE_NAMESPACE = "table.namespace";
     public static final String TABLE_PREFIX = "table.prefix";
     public static final String TABLE_AUTO_CREATE = "table.auto-create";
-    public static final String TABLE_WRITE_FORMAT = "table.write-format";
     public static final String ICEBERG_PREFIX = "iceberg.";
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
     public static final String CATALOG_IMPL = ICEBERG_PREFIX + "catalog-impl";
@@ -45,8 +44,6 @@ public class IcebergSinkConfiguration {
                     "Table namespace. In Glue it will be used as database name")
             .define(TABLE_PREFIX, STRING, "", MEDIUM,
                     "Prefix added to all table names")
-            .define(TABLE_WRITE_FORMAT, STRING, "parquet", LOW,
-                    "Format used for Iceberg tables")
             .define(CATALOG_NAME, STRING, "default", MEDIUM,
                     "Iceberg catalog name")
             .define(CATALOG_IMPL, STRING, null, MEDIUM,
@@ -97,10 +94,6 @@ public class IcebergSinkConfiguration {
         return parsedConfig.getString(TABLE_PREFIX);
     }
 
-    public String getTableWriteFormat() {
-        return  parsedConfig.getString(TABLE_WRITE_FORMAT);
-    }
-    
     public String getCatalogName() {
         return parsedConfig.getString(CATALOG_NAME);
     }

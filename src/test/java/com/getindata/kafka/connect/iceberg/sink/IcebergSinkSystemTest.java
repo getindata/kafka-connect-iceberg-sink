@@ -185,7 +185,7 @@ class IcebergSinkSystemTest {
         ObjectNode icebergConfig = MAPPER.createObjectNode();
         icebergConfig.put("name", "iceberg-sink");
         ObjectNode configNode = MAPPER.createObjectNode();
-        TestConfig.builder().withS3Url(s3MinioContainer.getInternalUrl()).build()
+        TestConfig.builder().withS3(s3MinioContainer.getInternalUrl()).build()
                 .getProperties()
                 .forEach(configNode::put);
         configNode.put("connector.class", "com.getindata.kafka.connect.iceberg.sink.IcebergSink");
