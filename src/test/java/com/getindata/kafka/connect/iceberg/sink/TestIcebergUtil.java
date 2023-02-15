@@ -148,7 +148,7 @@ class TestIcebergUtil {
                 Set.of(1)
         );
 
-        Table table1 = IcebergUtil.createIcebergTable(catalog, TableIdentifier.of("test", "test"), schema, false);
+        Table table1 = IcebergUtil.createIcebergTable(catalog, TableIdentifier.of("test", "test"), schema, config);
 
         assertTrue(IcebergUtil.getTableFileFormat(table1) == FileFormat.ORC);
     }

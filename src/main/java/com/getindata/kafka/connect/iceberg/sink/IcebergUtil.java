@@ -35,11 +35,12 @@ public class IcebergUtil {
   protected static final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
   public static Table createIcebergTable(Catalog icebergCatalog, TableIdentifier tableIdentifier,
-                                         Schema schema, boolean partition) {
+                                         Schema schema, IcebergSinkConfiguration configuration) {
 
     LOGGER.info("Creating table:'{}'\nschema:{}\nrowIdentifier:{}", tableIdentifier, schema,
         schema.identifierFieldNames());
 
+    boolean partition = !configuration.isUpsert();
     final PartitionSpec ps;
     if (partition && schema.findField("__source_ts") != null) {
       ps = PartitionSpec.builderFor(schema).day("__source_ts").build();
@@ -48,6 +49,7 @@ public class IcebergUtil {
     }
 
     return icebergCatalog.buildTable(tableIdentifier, schema)
+        .withProperties(configuration.getIcebergTableConfiguration())
         .withProperty(FORMAT_VERSION, "2")
         .withSortOrder(IcebergUtil.getIdentifierFieldsAsSortOrder(schema))
         .withPartitionSpec(ps)

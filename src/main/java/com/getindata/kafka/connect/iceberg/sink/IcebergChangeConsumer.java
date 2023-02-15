@@ -60,7 +60,7 @@ public class IcebergChangeConsumer {
             if (!configuration.isTableAutoCreate()) {
                 throw new ConnectException(String.format("Table '%s' not found! Set '%s' to true to create tables automatically!", tableId, TABLE_AUTO_CREATE));
             }
-            return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), !configuration.isUpsert());
+            return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), configuration);
         });
     }
 }
