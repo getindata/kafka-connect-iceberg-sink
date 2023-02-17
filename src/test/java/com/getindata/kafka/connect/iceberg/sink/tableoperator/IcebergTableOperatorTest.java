@@ -45,8 +45,12 @@ class IcebergTableOperatorTest {
     }
 
     public Table createTable(IcebergChangeEvent sampleEvent) {
+        IcebergSinkConfiguration config = TestConfig.builder()
+                .withUpsert(false)
+                .build();
+
         final TableIdentifier tableId = TableIdentifier.of(Namespace.of(TABLE_NAMESPACE), TABLE_PREFIX + sampleEvent.destinationTable());
-        return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), false);
+        return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), config);
     }
 
     @Test
