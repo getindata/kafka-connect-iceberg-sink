@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.2] - 2023-02-17
+
 -   Allow changing iceberg-table specific settings using `iceberg.table-default.*` connector configuration properties
 
 ## [0.2.1] - 2022-12-09
@@ -32,7 +34,9 @@ Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor 
 
 -   First release
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.1...HEAD
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.2...HEAD
+
+[0.2.2]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.1...0.2.2
 
 [0.2.1]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.0...0.2.1
 
