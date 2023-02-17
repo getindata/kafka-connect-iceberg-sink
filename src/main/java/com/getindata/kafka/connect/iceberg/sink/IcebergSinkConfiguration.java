@@ -21,6 +21,7 @@ public class IcebergSinkConfiguration {
     public static final String TABLE_PREFIX = "table.prefix";
     public static final String TABLE_AUTO_CREATE = "table.auto-create";
     public static final String ICEBERG_PREFIX = "iceberg.";
+    public static final String ICEBERG_TABLE_PREFIX = "iceberg.table-default";
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
     public static final String CATALOG_IMPL = ICEBERG_PREFIX + "catalog-impl";
     public static final String CATALOG_TYPE = ICEBERG_PREFIX + "type";
@@ -99,9 +100,17 @@ public class IcebergSinkConfiguration {
     }
     
     public Map<String, String> getIcebergCatalogConfiguration() {
+        return getConfiguration(ICEBERG_PREFIX);
+    }
+
+    public Map<String, String> getIcebergTableConfiguration() {
+        return getConfiguration(ICEBERG_TABLE_PREFIX);
+    }
+
+    private Map<String, String> getConfiguration(String prefix) {
         Map<String, String> config = new HashMap<>();
-        properties.keySet().stream().filter(key -> key.startsWith(ICEBERG_PREFIX)).forEach(key -> {
-            config.put(key.substring(ICEBERG_PREFIX.length()), properties.get(key));
+        properties.keySet().stream().filter(key -> key.startsWith(prefix)).forEach(key -> {
+            config.put(key.substring(prefix.length()), properties.get(key));
         });
         return config;
     }

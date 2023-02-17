@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+-   Allow changing iceberg-table specific settings using `iceberg.table-default.*` connector configuration properties
+
 ## [0.2.1] - 2022-12-09
 
 -   removed 'table.write-format', can be replaced with 'iceberg.table-default.write.format.default'
