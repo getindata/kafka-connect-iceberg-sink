@@ -47,6 +47,7 @@ public class IcebergChangeConsumer {
 
         for (Map.Entry<String, List<IcebergChangeEvent>> event : result.entrySet()) {
             String eventKey = event.getKey();
+
             if (configuration.isTableSnakeCase()) {
                 eventKey = IcebergUtil.toSnakeCase(eventKey);
             }
