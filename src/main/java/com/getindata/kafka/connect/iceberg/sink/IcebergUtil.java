@@ -99,9 +99,9 @@ public class IcebergUtil {
           
           if (Character.isUpperCase(c)) {
 
-              if (lastUpper == false) {
+              if (!lastUpper) {
 
-                  if (lastSeparator == false) {
+                  if (!lastSeparator) {
                       sb.append("_");
                   }
 
