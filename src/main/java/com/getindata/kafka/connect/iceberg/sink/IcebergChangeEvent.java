@@ -111,6 +111,8 @@ public class IcebergChangeEvent {
         return Types.FloatType.get();
       case "float64": // double is represented in 64 bits
         return Types.DoubleType.get();
+      case "double": // double is represented in 64 bits
+        return Types.DoubleType.get();
       case "boolean":
         return Types.BooleanType.get();
       case "string":
