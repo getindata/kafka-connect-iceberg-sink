@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Added support for `double` primitive type fields.
 - Allow coercion of iceberg table identifiers to `snake_case` setting `table.snake-case` boolean configuration.
 
 ## [0.2.2] - 2023-02-17
