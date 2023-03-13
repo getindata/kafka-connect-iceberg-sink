@@ -2,8 +2,10 @@
 
 ## [Unreleased]
 
-- Added support for `double` primitive type fields.
-- Allow coercion of iceberg table identifiers to `snake_case` setting `table.snake-case` boolean configuration.
+## [0.2.4] - 2023-03-13
+
+-   Added support for `double` primitive type fields.
+-   Allow coercion of iceberg table identifiers to `snake_case` setting `table.snake-case` boolean configuration.
 
 ## [0.2.2] - 2023-02-17
 
@@ -37,7 +39,9 @@ Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor 
 
 -   First release
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.2...HEAD
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.4...HEAD
+
+[0.2.4]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.2...0.2.4
 
 [0.2.2]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.1...0.2.2
 
