@@ -89,4 +89,44 @@ public class IcebergUtil {
         null);
   }
 
+  public static String toSnakeCase(String inputString) {
+      
+      StringBuilder sb = new StringBuilder();
+      boolean lastUpper = true;
+      boolean lastSeparator = false;
+
+      for (Character c : inputString.toCharArray()) {
+          
+          if (Character.isUpperCase(c)) {
+
+              if (!lastUpper) {
+
+                  if (!lastSeparator) {
+                      sb.append("_");
+                  }
+
+                  lastUpper = true;
+              }
+
+              sb.append(Character.toLowerCase(c));
+              lastSeparator = false;
+          }
+          
+          else {
+              
+              if (c == '_') {
+                  lastSeparator = true;
+              }
+
+              else {
+                  lastSeparator = false;
+              }
+              
+              sb.append(c);
+              lastUpper = false;
+          }
+      }
+      
+      return sb.toString();
+  }
 }
