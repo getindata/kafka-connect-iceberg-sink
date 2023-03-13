@@ -46,7 +46,12 @@ public class IcebergChangeConsumer {
                 .collect(Collectors.groupingBy(IcebergChangeEvent::destinationTable));
 
         for (Map.Entry<String, List<IcebergChangeEvent>> event : result.entrySet()) {
-            TableIdentifier tableIdentifier = TableIdentifier.of(Namespace.of(configuration.getTableNamespace()), configuration.getTablePrefix() + event.getKey());
+            String eventKey = event.getKey();
+
+            if (configuration.isTableSnakeCase()) {
+                eventKey = IcebergUtil.toSnakeCase(eventKey);
+            }
+            TableIdentifier tableIdentifier = TableIdentifier.of(Namespace.of(configuration.getTableNamespace()), configuration.getTablePrefix() + eventKey);
             Table icebergTable = loadIcebergTable(icebergCatalog, tableIdentifier, event.getValue().get(0));
             icebergTableOperator.addToTable(icebergTable, event.getValue());
         }

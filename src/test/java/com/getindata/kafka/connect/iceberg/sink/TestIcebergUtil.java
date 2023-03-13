@@ -152,4 +152,14 @@ class TestIcebergUtil {
 
         assertTrue(IcebergUtil.getTableFileFormat(table1) == FileFormat.ORC);
     }
+
+    @Test
+    public void testToSnakeCase() {
+        assertTrue(IcebergUtil.toSnakeCase("armadillo_pension").equals("armadillo_pension"));
+        assertTrue(IcebergUtil.toSnakeCase("TurboPascal").equals("turbo_pascal"));
+        assertTrue(IcebergUtil.toSnakeCase("Top_Of_The_Morning").equals("top_of_the_morning"));
+        assertTrue(IcebergUtil.toSnakeCase("amberLetTheDogsOut").equals("amber_let_the_dogs_out"));
+        assertTrue(IcebergUtil.toSnakeCase("WTF").equals("wtf"));
+        assertTrue(IcebergUtil.toSnakeCase("").equals(""));
+    }
 }

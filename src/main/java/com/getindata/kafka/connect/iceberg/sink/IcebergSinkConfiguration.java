@@ -20,6 +20,7 @@ public class IcebergSinkConfiguration {
     public static final String TABLE_NAMESPACE = "table.namespace";
     public static final String TABLE_PREFIX = "table.prefix";
     public static final String TABLE_AUTO_CREATE = "table.auto-create";
+    public static final String TABLE_SNAKE_CASE = "table.snake-case";
     public static final String ICEBERG_PREFIX = "iceberg.";
     public static final String ICEBERG_TABLE_PREFIX = "iceberg.table-default";
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
@@ -45,6 +46,8 @@ public class IcebergSinkConfiguration {
                     "Table namespace. In Glue it will be used as database name")
             .define(TABLE_PREFIX, STRING, "", MEDIUM,
                     "Prefix added to all table names")
+            .define(TABLE_SNAKE_CASE, BOOLEAN, false, MEDIUM,
+                    "Coerce table names to snake_case")
             .define(CATALOG_NAME, STRING, "default", MEDIUM,
                     "Iceberg catalog name")
             .define(CATALOG_IMPL, STRING, null, MEDIUM,
@@ -93,6 +96,10 @@ public class IcebergSinkConfiguration {
 
     public String getTablePrefix() {
         return parsedConfig.getString(TABLE_PREFIX);
+    }
+
+    public boolean isTableSnakeCase() {
+        return parsedConfig.getBoolean(TABLE_SNAKE_CASE);
     }
 
     public String getCatalogName() {
