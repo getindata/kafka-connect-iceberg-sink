@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -35,6 +36,16 @@ public class IcebergChangeEvent {
   private final JsonNode value;
   private final JsonNode key;
   private final JsonSchema jsonSchema;
+  private static boolean coerceDebeziumDate = false;
+  private static boolean coerceDebeziumMicroTimestamp = false;
+
+  public static void setCoerceDebeziumDate(boolean value) {
+      coerceDebeziumDate = value;
+  }
+
+  public static void setCoerceDebeziumMicroTimestamp(boolean value) {
+      coerceDebeziumMicroTimestamp = value;
+  }
 
   public IcebergChangeEvent(String destination,
                             JsonNode value,
@@ -97,14 +108,25 @@ public class IcebergChangeEvent {
     return record;
   }
 
-  private Type.PrimitiveType icebergFieldType(String fieldType) {
+  private Type.PrimitiveType icebergFieldType(String fieldType, String fieldTypeName) {
     switch (fieldType) {
       case "int8":
       case "int16":
       case "int32": // int 4 bytes
-        return Types.IntegerType.get();
+        if (IcebergChangeEvent.coerceDebeziumDate && fieldTypeName.equals("io.debezium.time.Date")) {
+          return Types.StringType.get();
+        }
+        else {
+          return Types.IntegerType.get();
+        }
       case "int64": // long 8 bytes
-        return Types.LongType.get();
+        if (IcebergChangeEvent.coerceDebeziumMicroTimestamp &&
+            fieldTypeName.equals("io.debezium.time.MicroTimestamp")) {
+          return Types.StringType.get();
+        }
+        else {
+          return Types.LongType.get();
+        }
       case "float8":
       case "float16":
       case "float32": // float is represented in 32 bits,
@@ -128,7 +150,10 @@ public class IcebergChangeEvent {
 
   private Object jsonValToIcebergVal(Types.NestedField field,
                                      JsonNode node) {
-    LOGGER.debug("Processing Field:{} Type:{}", field.name(), field.type());
+    String fieldTypeName = field.doc();
+    LOGGER.debug("Processing Field:{} Type:{} Doc:{}",
+                field.name(), field.type(), fieldTypeName);
+
     final Object val;
     switch (field.type().typeId()) {
       case INTEGER: // int 4 bytes
@@ -147,8 +172,20 @@ public class IcebergChangeEvent {
         val = node.isNull() ? null : node.asBoolean();
         break;
       case STRING:
-        // if the node is not a value node (method isValueNode returns false), convert it to string.
-        val = node.isValueNode() ? node.asText(null) : node.toString();
+        // string destination coercions based upon schema 'name' annotations
+        if (IcebergChangeEvent.coerceDebeziumDate && fieldTypeName.equals("io.debezium.time.Date")) {
+          val = node.isNull() ? null : LocalDate.ofEpochDay(node.asInt()).toString();
+        }
+        else {
+          if (IcebergChangeEvent.coerceDebeziumMicroTimestamp &&
+              fieldTypeName.equals("io.debezium.time.MicroTimestamp")) {
+            val = node.isNull() ? null : Instant.ofEpochSecond(0L, node.asLong() * 1000).toString();
+          }
+          else {
+            // if the node is not a value node (method isValueNode returns false), convert it to string.
+            val = node.isValueNode() ? node.asText(null) : node.toString();
+          }
+        }
         break;
       case BINARY:
         try {
@@ -280,7 +317,14 @@ public class IcebergChangeEvent {
         columnId++;
         String fieldName = jsonSchemaFieldNode.get("field").textValue();
         String fieldType = jsonSchemaFieldNode.get("type").textValue();
-        LOGGER.debug("Processing Field: [{}] {}.{}::{}", columnId, schemaName, fieldName, fieldType);
+        String fieldTypeName = "";
+        JsonNode fieldTypeNameNode = jsonSchemaFieldNode.get("name");
+        if (fieldTypeNameNode != null && !fieldTypeNameNode.isMissingNode()) {
+            fieldTypeName = fieldTypeNameNode.textValue();
+        }
+
+        LOGGER.debug("Processing Field: [{}] {}.{}::{} ({})",
+                     columnId, schemaName, fieldName, fieldType, fieldTypeName);
         switch (fieldType) {
           case "array":
             JsonNode items = jsonSchemaFieldNode.get("items");
@@ -291,10 +335,10 @@ public class IcebergChangeEvent {
                 throw new RuntimeException("Complex nested array types are not supported," +
                                            " array[" + listItemType + "], field " + fieldName);
               }
-
-              Type.PrimitiveType item = icebergFieldType(listItemType);
+              // primitive coercions are not supported for list types, pass '""' for fieldTypeName
+              Type.PrimitiveType item = icebergFieldType(listItemType, "");
               schemaColumns.add(Types.NestedField.optional(
-                  columnId, fieldName, Types.ListType.ofOptional(++columnId, item)));
+                  columnId, fieldName, Types.ListType.ofOptional(++columnId, item), ""));
             } else {
               throw new RuntimeException("Unexpected Array type for field " + fieldName);
             }
@@ -304,19 +348,27 @@ public class IcebergChangeEvent {
             //break;
           case "struct":
             // create it as struct, nested type
+            // passing "" for NestedField `doc` attribute,
+            // as `doc` annotated coercions are not supported for members of struct types
             List<Types.NestedField> subSchema = icebergSchema(jsonSchemaFieldNode, fieldName, columnId);
-            schemaColumns.add(Types.NestedField.optional(columnId, fieldName, Types.StructType.of(subSchema)));
+            schemaColumns.add(Types.NestedField.optional(columnId, fieldName,
+                                                         Types.StructType.of(subSchema), ""));
             columnId += subSchema.size();
             break;
           default: //primitive types
-            schemaColumns.add(Types.NestedField.optional(columnId, fieldName, icebergFieldType(fieldType)));
+            // passing fieldTypeName for NestedField `doc` attribute,
+            // annotation based value coercions can be made utilizing the NestedField `doc` initializer/method
+            schemaColumns.add(Types.NestedField.optional(columnId, fieldName,
+                                                         icebergFieldType(fieldType, fieldTypeName),
+                                                         fieldTypeName));
             break;
         }
       }
 
       if (addSourceTsField) {
         columnId++;
-        schemaColumns.add(Types.NestedField.optional(columnId, "__source_ts", Types.TimestampType.withZone()));
+        schemaColumns.add(Types.NestedField.optional(columnId, "__source_ts",
+                                                     Types.TimestampType.withZone(), ""));
       }
       return schemaColumns;
     }
