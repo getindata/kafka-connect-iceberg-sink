@@ -11,6 +11,8 @@ import static org.apache.kafka.common.config.ConfigDef.Importance.MEDIUM;
 import static org.apache.kafka.common.config.ConfigDef.Type.BOOLEAN;
 import static org.apache.kafka.common.config.ConfigDef.Type.STRING;
 
+import com.getindata.kafka.connect.iceberg.sink.IcebergChangeEvent;
+
 public class IcebergSinkConfiguration {
     public static final String UPSERT = "upsert";
     public static final String UPSERT_KEEP_DELETES = "upsert.keep-deletes";
@@ -21,6 +23,8 @@ public class IcebergSinkConfiguration {
     public static final String TABLE_PREFIX = "table.prefix";
     public static final String TABLE_AUTO_CREATE = "table.auto-create";
     public static final String TABLE_SNAKE_CASE = "table.snake-case";
+    public static final String COERCE_DEBEZIUM_DATE = "coerce.debezium-date";
+    public static final String COERCE_DEBEZIUM_MICRO_TIMESTAMP = "coerce.debezium-micro-timestamp";
     public static final String ICEBERG_PREFIX = "iceberg.";
     public static final String ICEBERG_TABLE_PREFIX = "iceberg.table-default";
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
@@ -48,6 +52,11 @@ public class IcebergSinkConfiguration {
                     "Prefix added to all table names")
             .define(TABLE_SNAKE_CASE, BOOLEAN, false, MEDIUM,
                     "Coerce table names to snake_case")
+            .define(COERCE_DEBEZIUM_DATE, BOOLEAN, false, MEDIUM,
+                    "Coerce int32 values with 'io.debezium.time.Date' annotation to local-date strings")
+            .define(COERCE_DEBEZIUM_MICRO_TIMESTAMP, BOOLEAN, false, MEDIUM,
+                    "Coerce int64 values with 'io.debezium.time.MicroTimestamp' annotation to" +
+                            "iso datetime strings")
             .define(CATALOG_NAME, STRING, "default", MEDIUM,
                     "Iceberg catalog name")
             .define(CATALOG_IMPL, STRING, null, MEDIUM,
@@ -102,10 +111,18 @@ public class IcebergSinkConfiguration {
         return parsedConfig.getBoolean(TABLE_SNAKE_CASE);
     }
 
+    public boolean isCoerceDebeziumDate() {
+        return parsedConfig.getBoolean(COERCE_DEBEZIUM_DATE);
+    }
+
+    public boolean isCoerceDebeziumMicroTimestamp() {
+        return parsedConfig.getBoolean(COERCE_DEBEZIUM_MICRO_TIMESTAMP);
+    }
+
     public String getCatalogName() {
         return parsedConfig.getString(CATALOG_NAME);
     }
-    
+
     public Map<String, String> getIcebergCatalogConfiguration() {
         return getConfiguration(ICEBERG_PREFIX);
     }
@@ -128,5 +145,10 @@ public class IcebergSinkConfiguration {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public void configureChangeEvent() {
+        IcebergChangeEvent.setCoerceDebeziumDate(this.isCoerceDebeziumDate());
+        IcebergChangeEvent.setCoerceDebeziumMicroTimestamp(this.isCoerceDebeziumMicroTimestamp());
     }
 }
