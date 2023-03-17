@@ -80,7 +80,8 @@ class TestIcebergUtil {
                 MAPPER.readTree(unwrapWithArraySchema).get("payload"), null,
                 MAPPER.readTree(unwrapWithArraySchema).get("schema"), null, this.defaultConfiguration);
         Schema schema = e.icebergSchema(defaultPartitionColumn);
-        assertTrue(schema.asStruct().toString().contains("struct<1: name: optional string (), 2: pay_by_quarter: optional list<int> (), 4: schedule: optional list<string> (), 6:"));
+        assertTrue(schema.asStruct().toString().contains("struct<1: name: optional string (), " +
+                "2: pay_by_quarter: optional list<int> (), 4: schedule: optional list<string> (), 6:"));
         System.out.println(schema.findField("pay_by_quarter").type().asListType().elementType());
         System.out.println(schema.findField("schedule").type().asListType().elementType());
         assertEquals(schema.findField("pay_by_quarter").type().asListType().elementType().toString(), "int");
