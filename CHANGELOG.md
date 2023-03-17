@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Added support for coercion of Debezium time types to formatted `string` values using type annotations.
+
 ## [0.2.5] - 2023-03-20
 
 -   Reverted pom.xml groupid
@@ -10,7 +12,6 @@
 
 -   Added support for `double` primitive type fields.
 -   Allow coercion of iceberg table identifiers to `snake_case` setting `table.snake-case` boolean configuration.
-
 ## [0.2.2] - 2023-02-17
 
 -   Allow changing iceberg-table specific settings using `iceberg.table-default.*` connector configuration properties
