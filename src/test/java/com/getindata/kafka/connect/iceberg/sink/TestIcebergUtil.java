@@ -40,6 +40,7 @@ class TestIcebergUtil {
     final String unwrapWithGeomSchema = Testing.Files.readResourceAsString("json/serde-with-schema_geom.json");
     final String unwrapWithArraySchema = Testing.Files.readResourceAsString("json/serde-with-array.json");
     final String unwrapWithArraySchema2 = Testing.Files.readResourceAsString("json/serde-with-array2.json");
+    final String debeziumTimeCoercionSchema = Testing.Files.readResourceAsString("json/debezium-annotated-schema.json");
 
     @Test
     public void testNestedJsonRecord() throws JsonProcessingException {
@@ -128,6 +129,73 @@ class TestIcebergUtil {
         JsonNode deserializedSchema = valueSerde.deserializer().deserialize("xx", serdeWithSchema.getBytes());
         System.out.println(deserializedSchema);
         assertFalse(deserializedSchema.has("schema"));
+    }
+
+    @Test
+    public void coerceDebeziumTimeTypesDefaultBehavior(@TempDir Path localWarehouseDir)
+      throws JsonProcessingException {
+        IcebergSinkConfiguration config = TestConfig.builder()
+                .withLocalCatalog(localWarehouseDir)
+                .build();
+        config.configureChangeEvent();
+        IcebergChangeEvent e = new IcebergChangeEvent("test",
+                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
+                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
+        Schema schema = e.icebergSchema();
+        GenericRecord record = e.asIcebergRecord(schema);
+        String schemaString = schema.toString();
+        String recordString = record.toString();
+
+        assertTrue(schemaString.contains("ship_date: optional int (io.debezium.time.Date)"));
+        assertTrue(schemaString.contains("ship_timestamp: optional long (io.debezium.time.MicroTimestamp)"));
+        assertTrue(recordString.contains("77663"));
+        assertTrue(recordString.contains("6710075456016196"));
+    }
+
+    @Test
+    public void coerceDebeziumTimeTypesDisabledBehavior(@TempDir Path localWarehouseDir)
+      throws JsonProcessingException {
+        IcebergSinkConfiguration config = TestConfig.builder()
+                .withLocalCatalog(localWarehouseDir)
+                .withCustomProperty("coerce.debezium-date", "false")
+                .withCustomProperty("coerce.debezium-micro-timestamp", "false")
+                .build();
+        config.configureChangeEvent();
+        IcebergChangeEvent e = new IcebergChangeEvent("test",
+                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
+                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
+        Schema schema = e.icebergSchema();
+        GenericRecord record = e.asIcebergRecord(schema);
+        String schemaString = schema.toString();
+        String recordString = record.toString();
+
+        assertTrue(schemaString.contains("ship_date: optional int (io.debezium.time.Date)"));
+        assertTrue(schemaString.contains("ship_timestamp: optional long (io.debezium.time.MicroTimestamp)"));
+        assertTrue(recordString.contains("77663"));
+        assertTrue(recordString.contains("6710075456016196"));
+    }
+
+    @Test
+    public void coerceDebeziumTimeTypesEnabledBehavior(@TempDir Path localWarehouseDir)
+      throws JsonProcessingException {
+        IcebergSinkConfiguration config = TestConfig.builder()
+                .withLocalCatalog(localWarehouseDir)
+                .withCustomProperty("coerce.debezium-date", "true")
+                .withCustomProperty("coerce.debezium-micro-timestamp", "true")
+                .build();
+        config.configureChangeEvent();
+        IcebergChangeEvent e = new IcebergChangeEvent("test",
+                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
+                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
+        Schema schema = e.icebergSchema();
+        GenericRecord record = e.asIcebergRecord(schema);
+        String schemaString = schema.toString();
+        String recordString = record.toString();
+
+        assertTrue(schemaString.contains("ship_date: optional string (io.debezium.time.Date)"));
+        assertTrue(schemaString.contains("ship_timestamp: optional string (io.debezium.time.MicroTimestamp)"));
+        assertTrue(recordString.contains("2182-08-20"));
+        assertTrue(recordString.contains("2182-08-19T21:50:56.016196Z"));
     }
 
     @Test

@@ -1,0 +1,37 @@
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "int32",
+        "optional": false,
+        "field": "id"
+      },
+      {
+        "type": "int32",
+        "optional": false,
+        "name": "io.debezium.time.Date",
+        "version": 1,
+        "field": "ship_date"
+      },
+      {
+        "type": "int64",
+        "optional": true,
+        "name": "io.debezium.time.MicroTimestamp",
+        "field": "ship_timestamp"
+      }
+    ],
+    "optional": false,
+    "name": "testc.ship.time.Value"
+  },
+  "payload": {
+    "id": 10003,
+    "ship_date": 77663,
+    "ship_timestamp": 6710075456016196,
+    "__op": "r",
+    "__table": "time",
+    "__lsn": 33832960,
+    "__source_ts_ms": 1596309876678,
+    "__deleted": "false"
+  }
+}
