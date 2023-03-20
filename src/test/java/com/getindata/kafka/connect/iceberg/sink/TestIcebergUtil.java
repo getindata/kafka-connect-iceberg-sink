@@ -48,6 +48,8 @@ class TestIcebergUtil {
 
     private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
 
+    final String customPartitionColumn = Testing.Files.readResourceAsString("json/custom-partition-column.json");
+
     @Test
     public void testNestedJsonRecord() throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
@@ -117,6 +119,19 @@ class TestIcebergUtil {
         assertEquals(123, g.get(1, Types.IntegerType.get().typeId().javaClass()));
         assertEquals("Record(null, null)", h.toString());
         assertNull(h.get(0, Types.BinaryType.get().typeId().javaClass()));
+    }
+
+    @Test
+    public void testCustomPartitionColumnRecord() throws IOException {
+        IcebergChangeEvent e = new IcebergChangeEvent("test",
+                MAPPER.readTree(customPartitionColumn).get("payload"), null,
+                MAPPER.readTree(customPartitionColumn).get("schema"), null);
+        Schema schema = e.icebergSchema();
+        GenericRecord record = e.asIcebergRecord(schema, "timestamp");
+        assertEquals("2023-03-20T18:25:27.865Z", record.getField("__source_ts").toString());
+        assertEquals("hello", record.getField("message"));
+        System.out.println(schema);
+        System.out.println(record);
     }
 
     @Test

@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "type": "struct",
+    "optional": false,
+    "fields": [
+      {
+        "type": "string",
+        "optional": false,
+        "field": "message"
+      },
+      {
+        "type": "int32",
+        "optional": false,
+        "field": "timestamp"
+      }
+    ]
+  },
+  "payload": {
+    "message": "hello",
+    "timestamp": 1679336727865
+  }
+}
