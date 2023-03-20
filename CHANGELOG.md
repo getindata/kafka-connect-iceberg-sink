@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Reverted pom.xml groupid
+
 ## [0.2.4] - 2023-03-13
 
 -   Added support for `double` primitive type fields.
