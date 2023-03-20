@@ -66,7 +66,7 @@ class TestIcebergUtil {
                 MAPPER.readTree(unwrapWithSchema).get("schema"), null,
                 this.defaultConfiguration);
         Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema);
+        GenericRecord record = e.asIcebergRecord(schema, "__source_ts_ms");
         assertEquals("orders", record.getField("__table").toString());
         assertEquals(16850, record.getField("order_date"));
     }
@@ -83,7 +83,7 @@ class TestIcebergUtil {
         System.out.println(schema.findField("schedule").type().asListType().elementType());
         assertEquals(schema.findField("pay_by_quarter").type().asListType().elementType().toString(), "int");
         assertEquals(schema.findField("schedule").type().asListType().elementType().toString(), "string");
-        GenericRecord record = e.asIcebergRecord(schema);
+        GenericRecord record = e.asIcebergRecord(schema, "__source_ts_ms");
         assertTrue(record.toString().contains("[10000, 10001, 10002, 10003]"));
     }
 
@@ -109,7 +109,7 @@ class TestIcebergUtil {
                 MAPPER.readTree(unwrapWithGeomSchema).get("schema"), null,
                 this.defaultConfiguration);
         Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema);
+        GenericRecord record = e.asIcebergRecord(schema, "__source_ts_ms");
         assertTrue(schema.toString().contains("g: optional struct<3: wkb: optional string (), 4: srid: optional int ()>"));
         GenericRecord g = (GenericRecord) record.getField("g");
         GenericRecord h = (GenericRecord) record.getField("h");

@@ -160,7 +160,7 @@ public class IcebergTableOperator {
         BaseTaskWriter<Record> writer = writerFactory.create(icebergTable);
         try {
             for (IcebergChangeEvent e : events) {
-                writer.write(e.asIcebergRecord(icebergTable.schema()));
+                writer.write(e.asIcebergRecord(icebergTable.schema(), configuration.getPartitionColumn()));
             }
 
             writer.close();

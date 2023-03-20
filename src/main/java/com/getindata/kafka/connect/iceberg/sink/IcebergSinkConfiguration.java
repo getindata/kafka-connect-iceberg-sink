@@ -27,6 +27,8 @@ public class IcebergSinkConfiguration {
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
     public static final String CATALOG_IMPL = ICEBERG_PREFIX + "catalog-impl";
     public static final String CATALOG_TYPE = ICEBERG_PREFIX + "type";
+    public static final String PARTITION_COLUMN = ICEBERG_PREFIX + "partition";
+
     private static final ConfigDef CONFIG_DEF = new ConfigDef()
             .define(UPSERT, BOOLEAN, true, MEDIUM,
                     "When true Iceberg rows will be updated based on table primary key. " +
@@ -60,8 +62,9 @@ public class IcebergSinkConfiguration {
             .define(CATALOG_TYPE, STRING, null, MEDIUM,
                     "Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type " +
                             "can be set to non null value at the same time)")
+            .define(PARTITION_COLUMN, STRING, "__source_ts_ms", MEDIUM,
+                    "Column used for partitioning. Must be unix millisecond timestamp.")
             ;
-
     private final AbstractConfig parsedConfig;
     private final Map<String, String> properties;
 
@@ -112,6 +115,10 @@ public class IcebergSinkConfiguration {
 
     public String getCatalogName() {
         return parsedConfig.getString(CATALOG_NAME);
+    }
+
+    public String getPartitionColumn() {
+        return parsedConfig.getString(PARTITION_COLUMN);
     }
 
     public Map<String, String> getIcebergCatalogConfiguration() {
