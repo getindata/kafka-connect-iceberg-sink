@@ -27,7 +27,7 @@ mvn clean package
 | iceberg.type            | String  | *null*         | Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time)                 |
 | iceberg.*               |         |                | All properties with this prefix will be passed to Iceberg Catalog implementation                                                       |
 | iceberg.table-default.* |         |                | Iceberg specific table settings can be changed with this prefix, e.g. 'iceberg.table-default.write.format.default' can be set to 'orc' |
-
+| iceberg.partition       | String  | __source_ts_ms | Column used for partitioning. Must be a UTC unix millisecond timestamp.                                                                |
 
 ### REST / Manual based installation
 
