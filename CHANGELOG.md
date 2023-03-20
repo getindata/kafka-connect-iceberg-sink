@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add `iceberg.partition` config setting to allow any column to be used for partitioning.
+
 ## [0.2.5] - 2023-03-20
 
 -   Reverted pom.xml groupid
