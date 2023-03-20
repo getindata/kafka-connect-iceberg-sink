@@ -67,12 +67,12 @@ public class IcebergChangeEvent {
     return destination.replace(".", "_").replace("-", "_");
   }
 
-  public GenericRecord asIcebergRecord(Schema schema) {
+  public GenericRecord asIcebergRecord(Schema schema, String partitionColumn) {
     final GenericRecord record = asIcebergRecord(schema.asStruct(), value);
 
-    if (value != null && value.has("__source_ts_ms") && value.get("__source_ts_ms") != null) {
-      final long source_ts_ms = value.get("__source_ts_ms").longValue();
-      final OffsetDateTime odt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(source_ts_ms), ZoneOffset.UTC);
+    if (value != null && value.has(partitionColumn) && value.get(partitionColumn) != null) {
+      final long partitionTimestamp = value.get(partitionColumn).longValue();
+      final OffsetDateTime odt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(partitionTimestamp), ZoneOffset.UTC);
       record.setField("__source_ts", odt);
     } else {
       record.setField("__source_ts", null);
