@@ -64,7 +64,7 @@ public class IcebergTableOperator {
 
             for (Map.Entry<IcebergChangeEvent.JsonSchema, List<IcebergChangeEvent>> schemaEvents : eventsGroupedBySchema.entrySet()) {
                 // extend table schema if new fields found
-                applyFieldAddition(icebergTable, schemaEvents.getKey().icebergSchema());
+                applyFieldAddition(icebergTable, schemaEvents.getKey().icebergSchema(configuration.getPartitionColumn()));
                 // add set of events to table
                 addToTablePerSchema(icebergTable, schemaEvents.getValue());
             }
@@ -160,7 +160,9 @@ public class IcebergTableOperator {
         BaseTaskWriter<Record> writer = writerFactory.create(icebergTable);
         try {
             for (IcebergChangeEvent e : events) {
-                writer.write(e.asIcebergRecord(icebergTable.schema(), configuration.getPartitionColumn()));
+                writer.write(e.asIcebergRecord(icebergTable.schema(),
+                        configuration.getPartitionColumn(),
+                        configuration.getPartitionTimestamp()));
             }
 
             writer.close();

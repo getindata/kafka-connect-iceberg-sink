@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TestIcebergUtil {
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final String defaultPartitionTimestamp = "__source_ts_ms";
+    private static final String defaultPartitionColumn = "__source_ts";
+
     final String serdeWithSchema = Testing.Files.readResourceAsString("json/serde-with-schema.json");
     final String unwrapWithSchema = Testing.Files.readResourceAsString("json/unwrap-with-schema.json");
     final String unwrapWithGeomSchema = Testing.Files.readResourceAsString("json/serde-with-schema_geom.json");
@@ -48,7 +51,7 @@ class TestIcebergUtil {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(serdeWithSchema).get("payload"), null,
                 MAPPER.readTree(serdeWithSchema).get("schema"), null);
-        Schema schema = e.icebergSchema();
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
         assertTrue(schema.toString().contains("before: optional struct<2: id: optional int, 3: first_name: optional string, " +
                 "4:"));
     }
@@ -58,8 +61,8 @@ class TestIcebergUtil {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(unwrapWithSchema).get("payload"), null,
                 MAPPER.readTree(unwrapWithSchema).get("schema"), null);
-        Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema, "__source_ts_ms");
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
+        GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
         assertEquals("orders", record.getField("__table").toString());
         assertEquals(16850, record.getField("order_date"));
         System.out.println(schema);
@@ -71,14 +74,14 @@ class TestIcebergUtil {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(unwrapWithArraySchema).get("payload"), null,
                 MAPPER.readTree(unwrapWithArraySchema).get("schema"), null);
-        Schema schema = e.icebergSchema();
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
         assertTrue(schema.asStruct().toString().contains("struct<1: name: optional string, 2: pay_by_quarter: optional list<int>, 4: schedule: optional list<string>, 6:"));
         System.out.println(schema.asStruct());
         System.out.println(schema.findField("pay_by_quarter").type().asListType().elementType());
         System.out.println(schema.findField("schedule").type().asListType().elementType());
         assertEquals(schema.findField("pay_by_quarter").type().asListType().elementType().toString(), "int");
         assertEquals(schema.findField("schedule").type().asListType().elementType().toString(), "string");
-        GenericRecord record = e.asIcebergRecord(schema, "__source_ts_ms");
+        GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
         assertTrue(record.toString().contains("[10000, 10001, 10002, 10003]"));
     }
 
@@ -88,7 +91,7 @@ class TestIcebergUtil {
             IcebergChangeEvent e = new IcebergChangeEvent("test",
                     MAPPER.readTree(unwrapWithArraySchema2).get("payload"), null,
                     MAPPER.readTree(unwrapWithArraySchema2).get("schema"), null);
-            Schema schema = e.icebergSchema();
+            Schema schema = e.icebergSchema(defaultPartitionColumn);
             System.out.println(schema.asStruct());
             System.out.println(schema);
             System.out.println(schema.findField("tableChanges"));
@@ -101,8 +104,8 @@ class TestIcebergUtil {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(unwrapWithGeomSchema).get("payload"), null,
                 MAPPER.readTree(unwrapWithGeomSchema).get("schema"), null);
-        Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema, "__source_ts_ms");
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
+        GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
         assertTrue(schema.toString().contains("g: optional struct<3: wkb: optional string, 4: srid: optional int>"));
         GenericRecord g = (GenericRecord) record.getField("g");
         GenericRecord h = (GenericRecord) record.getField("h");
@@ -113,13 +116,26 @@ class TestIcebergUtil {
     }
 
     @Test
-    public void testCustomPartitionColumnRecord() throws IOException {
+    public void testConvertPartitionTimestampRecord() throws IOException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(customPartitionColumn).get("payload"), null,
                 MAPPER.readTree(customPartitionColumn).get("schema"), null);
-        Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema, "timestamp");
-        assertEquals("2023-03-20T18:25:27.865Z", record.getField("__source_ts").toString());
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
+        GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, "timestamp");
+        assertEquals("2023-03-20T18:25:27.865Z", record.getField(defaultPartitionColumn).toString());
+        assertEquals("hello", record.getField("message"));
+        System.out.println(schema);
+        System.out.println(record);
+    }
+
+    @Test
+    public void testConvertPartitionColumnRecord() throws IOException {
+        IcebergChangeEvent e = new IcebergChangeEvent("test",
+                MAPPER.readTree(customPartitionColumn).get("payload"), null,
+                MAPPER.readTree(customPartitionColumn).get("schema"), null);
+        Schema schema = e.icebergSchema("timestamp");
+        GenericRecord record = e.asIcebergRecord(schema, "timestamp", "timestamp");
+        assertEquals("2023-03-20T18:25:27.865Z", record.getField("timestamp").toString());
         assertEquals("hello", record.getField("message"));
         System.out.println(schema);
         System.out.println(record);

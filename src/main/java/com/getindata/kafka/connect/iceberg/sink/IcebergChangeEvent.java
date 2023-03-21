@@ -59,23 +59,26 @@ public class IcebergChangeEvent {
     return jsonSchema;
   }
 
-  public Schema icebergSchema() {
-    return jsonSchema.icebergSchema();
+  public Schema icebergSchema(String partitionColumn) {
+    return jsonSchema.icebergSchema(partitionColumn);
   }
 
   public String destinationTable() {
     return destination.replace(".", "_").replace("-", "_");
   }
 
-  public GenericRecord asIcebergRecord(Schema schema, String partitionColumn) {
+  public GenericRecord asIcebergRecord(Schema schema, String partitionColumn, String partitionTimestampColumn) {
     final GenericRecord record = asIcebergRecord(schema.asStruct(), value);
 
-    if (value != null && value.has(partitionColumn) && value.get(partitionColumn) != null) {
-      final long partitionTimestamp = value.get(partitionColumn).longValue();
-      final OffsetDateTime odt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(partitionTimestamp), ZoneOffset.UTC);
-      record.setField("__source_ts", odt);
-    } else {
-      record.setField("__source_ts", null);
+    if (partitionTimestampColumn != null && !partitionTimestampColumn.equals("")) {
+      // if partitionTimestampColumn is set, convert it to a timestamp and store it in partitionColumn.
+      if (value != null && value.has(partitionTimestampColumn) && value.get(partitionTimestampColumn) != null) {
+        final long partitionTimestamp = value.get(partitionTimestampColumn).longValue();
+        final OffsetDateTime odt = OffsetDateTime.ofInstant(Instant.ofEpochMilli(partitionTimestamp), ZoneOffset.UTC);
+        record.setField(partitionColumn, odt);
+      } else {
+        record.setField(partitionColumn, null);
+      }
     }
     return record;
   }
@@ -119,6 +122,8 @@ public class IcebergChangeEvent {
         return Types.StringType.get();
       case "bytes":
         return Types.BinaryType.get();
+      case "timestamptz":
+        return Types.TimestampType.withZone();
       default:
         // default to String type
         return Types.StringType.get();
@@ -219,22 +224,22 @@ public class IcebergChangeEvent {
       return new ArrayList<>();
     }
 
-    private List<Types.NestedField> valueSchemaFields() {
+    private List<Types.NestedField> valueSchemaFields(String partitionColumn) {
       if (valueSchema != null && valueSchema.has("fields") && valueSchema.get("fields").isArray()) {
         LOGGER.debug(valueSchema.toString());
-        return icebergSchema(valueSchema, "", 0, true);
+        return icebergSchema(valueSchema, "", 0, true, partitionColumn);
       }
       LOGGER.trace("Event schema not found!");
       return new ArrayList<>();
     }
 
-    public Schema icebergSchema() {
+    public Schema icebergSchema(String partitionColumn) {
 
       if (this.valueSchema == null) {
         throw new RuntimeException("Failed to get event schema, event schema is null");
       }
 
-      final List<Types.NestedField> tableColumns = valueSchemaFields();
+      final List<Types.NestedField> tableColumns = valueSchemaFields(partitionColumn);
 
       if (tableColumns.isEmpty()) {
         throw new RuntimeException("Failed to get event schema, event schema has no fields!");
@@ -268,11 +273,11 @@ public class IcebergChangeEvent {
     }
 
     private List<Types.NestedField> icebergSchema(JsonNode eventSchema, String schemaName, int columnId) {
-      return icebergSchema(eventSchema, schemaName, columnId, false);
+      return icebergSchema(eventSchema, schemaName, columnId, false, "");
     }
 
     private List<Types.NestedField> icebergSchema(JsonNode eventSchema, String schemaName, int columnId,
-                                                  boolean addSourceTsField) {
+                                                  boolean addPartitionField, String partitionColumn) {
       List<Types.NestedField> schemaColumns = new ArrayList<>();
       String schemaType = eventSchema.get("type").textValue();
       LOGGER.debug("Converting Schema of: {}::{}", schemaName, schemaType);
@@ -309,14 +314,20 @@ public class IcebergChangeEvent {
             columnId += subSchema.size();
             break;
           default: //primitive types
+            if (fieldName.equals(partitionColumn)) {
+              // if it is the partition column, swap its type to timestamp
+              fieldType = "timestamptz";
+              // we also dont need to add a partition field, since it already exists.
+              addPartitionField = false;
+            }
             schemaColumns.add(Types.NestedField.optional(columnId, fieldName, icebergFieldType(fieldType)));
             break;
         }
       }
 
-      if (addSourceTsField) {
+      if (addPartitionField) {
         columnId++;
-        schemaColumns.add(Types.NestedField.optional(columnId, "__source_ts", Types.TimestampType.withZone()));
+        schemaColumns.add(Types.NestedField.optional(columnId, partitionColumn, Types.TimestampType.withZone()));
       }
       return schemaColumns;
     }
