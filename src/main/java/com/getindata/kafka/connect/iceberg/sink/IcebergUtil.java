@@ -42,8 +42,8 @@ public class IcebergUtil {
 
     boolean partition = !configuration.isUpsert();
     final PartitionSpec ps;
-    if (partition && schema.findField("__source_ts") != null) {
-      ps = PartitionSpec.builderFor(schema).day("__source_ts").build();
+    if (partition && schema.findField(configuration.getPartitionColumn()) != null) {
+      ps = PartitionSpec.builderFor(schema).day(configuration.getPartitionColumn()).build();
     } else {
       ps = PartitionSpec.builderFor(schema).build();
     }
