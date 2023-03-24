@@ -26,6 +26,9 @@ public class IcebergSinkConfiguration {
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
     public static final String CATALOG_IMPL = ICEBERG_PREFIX + "catalog-impl";
     public static final String CATALOG_TYPE = ICEBERG_PREFIX + "type";
+    public static final String PARTITION_TIMESTAMP = ICEBERG_PREFIX + "partition.timestamp";
+    public static final String PARTITION_COLUMN = ICEBERG_PREFIX + "partition.column";
+
     private static final ConfigDef CONFIG_DEF = new ConfigDef()
             .define(UPSERT, BOOLEAN, true, MEDIUM,
                     "When true Iceberg rows will be updated based on table primary key. " +
@@ -56,8 +59,12 @@ public class IcebergSinkConfiguration {
             .define(CATALOG_TYPE, STRING, null, MEDIUM,
                     "Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type " +
                             "can be set to non null value at the same time)")
+            .define(PARTITION_TIMESTAMP, STRING, "__source_ts_ms", MEDIUM,
+                    "Unix millisecond timestamp used to fill the partitioning column. If set, values"+
+                    "will be converted to a timestamp value and stored in iceberg.partition.column")
+            .define(PARTITION_COLUMN, STRING, "__source_ts", MEDIUM,
+                    "Column used for partitioning. If the column already exists, it must be of type timestamp.")
             ;
-
     private final AbstractConfig parsedConfig;
     private final Map<String, String> properties;
 
@@ -105,7 +112,23 @@ public class IcebergSinkConfiguration {
     public String getCatalogName() {
         return parsedConfig.getString(CATALOG_NAME);
     }
-    
+
+    /**
+     * Gets the name of the column used for partitioning the iceberg table.
+     * @return Name of the partitioning column
+     */
+    public String getPartitionColumn() {
+        return parsedConfig.getString(PARTITION_COLUMN);
+    }
+
+    /**
+     * Gets the name of the column containing unix millisecond timestamps to be used for partitioning.
+     * @return Unix timestamp in milliseconds
+     */
+    public String getPartitionTimestamp() {
+        return parsedConfig.getString(PARTITION_TIMESTAMP);
+    }
+
     public Map<String, String> getIcebergCatalogConfiguration() {
         return getConfiguration(ICEBERG_PREFIX);
     }

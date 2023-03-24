@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-03-24
+
+-   Add `iceberg.partition` config setting to allow any column to be used for partitioning.
+
 ## [0.2.5] - 2023-03-20
 
 -   Reverted pom.xml groupid
@@ -43,7 +47,9 @@ Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor 
 
 -   First release
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.5...HEAD
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.3.0...HEAD
+
+[0.3.0]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.5...0.3.0
 
 [0.2.5]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.4...0.2.5
 
