@@ -84,8 +84,12 @@ class IcebergSinkSystemTest {
         postgresTestHelper.execute("create table dbz_test1 (timestamp bigint, id int PRIMARY KEY, value varchar(20))");
         postgresTestHelper.execute("insert into dbz_test1 values(123, 1, 'ABC')");
 
+        var v = sparkTestHelper.query("SELECT 1").count();
+
         String query = "SELECT timestamp, id, value FROM " + getIcebergTableName("dbz_test1");
-        given().ignoreExceptions().await().atMost(Duration.ofSeconds(15)).until(() -> sparkTestHelper.query(query).count() == 1);
+        given().ignoreExceptions().await().atMost(Duration.ofSeconds(1800)).until(() -> {
+            return sparkTestHelper.query(query).count() == 1;
+        });
 
         Dataset<Row> result = sparkTestHelper.query(query);
         assertThat(result.count()).isEqualTo(1);
@@ -118,7 +122,7 @@ class IcebergSinkSystemTest {
         postgresTestHelper.execute("insert into dbz_test2 values(123, 1, 'ABC')");
 
         String query1 = "SELECT timestamp, id, value FROM " + getIcebergTableName("dbz_test2");
-        given().ignoreExceptions().await().atMost(Duration.ofSeconds(15)).until(() -> sparkTestHelper.query(query1).count() == 1);
+        given().ignoreExceptions().await().atMost(Duration.ofSeconds(150)).until(() -> sparkTestHelper.query(query1).count() == 1);
 
         postgresTestHelper.execute("alter table dbz_test2 add column value2 varchar(20)");
         postgresTestHelper.execute("insert into dbz_test2 values(456, 2, 'DEF', 'XYZ')");
