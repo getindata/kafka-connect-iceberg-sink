@@ -29,6 +29,8 @@ public class IcebergSinkConfiguration {
     public static final String CATALOG_TYPE = ICEBERG_PREFIX + "type";
     public static final String PARTITION_TIMESTAMP = ICEBERG_PREFIX + "partition.timestamp";
     public static final String PARTITION_COLUMN = ICEBERG_PREFIX + "partition.column";
+    public static final String FORMAT_VERSION = ICEBERG_PREFIX + "format-version";
+
 
     private static final ConfigDef CONFIG_DEF = new ConfigDef()
             .define(UPSERT, BOOLEAN, true, MEDIUM,
@@ -68,7 +70,10 @@ public class IcebergSinkConfiguration {
                     "will be converted to a timestamp value and stored in iceberg.partition.column")
             .define(PARTITION_COLUMN, STRING, "__source_ts", MEDIUM,
                     "Column used for partitioning. If the column already exists, it must be of type timestamp.")
-            ;
+            .define(FORMAT_VERSION, STRING, "__source_ts", MEDIUM,
+                    "Specification for the Iceberg table formatg. Version 1: Analytic Data Tables."+
+                    "Version 2: Row-level Deletes. Default 2.");
+                    
     private final AbstractConfig parsedConfig;
     private final Map<String, String> properties;
 
@@ -127,6 +132,10 @@ public class IcebergSinkConfiguration {
      */
     public String getPartitionColumn() {
         return parsedConfig.getString(PARTITION_COLUMN);
+    }
+
+    public String getFormatVersion() {
+        return parsedConfig.getString(FORMAT_VERSION);
     }
 
     /**
