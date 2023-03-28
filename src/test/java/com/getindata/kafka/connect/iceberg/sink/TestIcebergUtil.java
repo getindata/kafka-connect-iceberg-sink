@@ -326,6 +326,30 @@ class TestIcebergUtil {
     }
 
     @Test
+    public void createIcebergTablesWithCustomPropertiesFormatVersion(@TempDir Path localWarehouseDir) {
+        IcebergSinkConfiguration config = TestConfig.builder()
+                .withLocalCatalog(localWarehouseDir)
+                .withUpsert(false)
+                .withCustomCatalogProperty("table-default.write.format.default", "orc")
+                .withFormatVersion("1")
+                .build();
+
+        Catalog catalog = IcebergCatalogFactory.create(config);
+
+        Schema schema = new Schema(
+                List.of(
+                        Types.NestedField.required(1, "id", Types.IntegerType.get()),
+                        Types.NestedField.required(2, "data", Types.StringType.get())),
+                Set.of(1)
+        );
+
+        Table table1 = IcebergUtil.createIcebergTable(catalog, TableIdentifier.of("test", "test"), schema, config);
+
+        assertTrue(IcebergUtil.getTableFileFormat(table1) == FileFormat.ORC);
+    }
+
+
+    @Test
     public void testToSnakeCase() {
         assertTrue(IcebergUtil.toSnakeCase("armadillo_pension").equals("armadillo_pension"));
         assertTrue(IcebergUtil.toSnakeCase("TurboPascal").equals("turbo_pascal"));

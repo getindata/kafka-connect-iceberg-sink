@@ -69,6 +69,11 @@ public class TestConfig {
             return this;
         }
 
+        public Builder withFormatVersion(String formatVersion) {
+            properties.put(IcebergSinkConfiguration.FORMAT_VERSION, formatVersion));
+            return this;
+        }
+
         public IcebergSinkConfiguration build() {
             return new IcebergSinkConfiguration(properties);
         }
