@@ -48,9 +48,13 @@ public class IcebergUtil {
       ps = PartitionSpec.builderFor(schema).build();
     }
 
+    String formatVersion = "2";
+    if(configuration.getFormatVersion()){
+      formatVersion=configuration.getFormatVersion();
+    }
     return icebergCatalog.buildTable(tableIdentifier, schema)
         .withProperties(configuration.getIcebergTableConfiguration())
-        .withProperty(FORMAT_VERSION, "2")
+        .withProperty(FORMAT_VERSION, formatVersion)
         .withSortOrder(IcebergUtil.getIdentifierFieldsAsSortOrder(schema))
         .withPartitionSpec(ps)
         .create();
