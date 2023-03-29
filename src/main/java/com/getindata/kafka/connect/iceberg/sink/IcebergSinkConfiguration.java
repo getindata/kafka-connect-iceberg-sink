@@ -66,7 +66,7 @@ public class IcebergSinkConfiguration {
                     "will be converted to a timestamp value and stored in iceberg.partition.column")
             .define(PARTITION_COLUMN, STRING, "__source_ts", MEDIUM,
                     "Column used for partitioning. If the column already exists, it must be of type timestamp.")
-            .define(FORMAT_VERSION, STRING, "__source_ts", MEDIUM,
+            .define(FORMAT_VERSION, STRING, "2", MEDIUM,
                     "Specification for the Iceberg table formatg. Version 1: Analytic Data Tables."+
                     "Version 2: Row-level Deletes. Default 2.");
                     
