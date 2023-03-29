@@ -49,7 +49,7 @@ public class IcebergUtil {
     }
 
     String formatVersion = "2";
-    if(configuration.getFormatVersion()){
+    if(configuration.getFormatVersion() != null && !"".equals(configuration.getFormatVersion())){
       formatVersion=configuration.getFormatVersion();
     }
     return icebergCatalog.buildTable(tableIdentifier, schema)
