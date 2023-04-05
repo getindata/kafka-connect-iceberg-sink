@@ -29,7 +29,7 @@ mvn clean package
 | iceberg.table-default.\*    |         |                  | Iceberg specific table settings can be changed with this prefix, e.g. 'iceberg.table-default.write.format.default' can be set to 'orc'                      |
 | iceberg.partition.column    | String  | \_\_source_ts    | Column used for partitioning. If the column already exists, it must be of type timestamp.                                                                   |
 | iceberg.partition.timestamp | String  | \_\_source_ts_ms | Column containing unix millisecond timestamps to be converted to partitioning times. If equal to partition.column, values will be replaced with timestamps. |
-| iceberg.format-version      | String  | \_\_source_ts_ms | Specification for the Iceberg table formatg. Version 1: Analytic Data Tables. Version 2: Row-level Deletes. Default 2.                                      |
+| iceberg.format-version      | String  | 2                | Specification for the Iceberg table format. Version 1: Analytic Data Tables. Version 2: Row-level Deletes. Default 2.                                       |
 
 ### REST / Manual based installation
 
