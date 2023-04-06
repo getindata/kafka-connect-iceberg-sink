@@ -12,44 +12,46 @@ mvn clean package
 
 ### Configuration reference
 
-| Key                         | Type    | Default value  | Description                                                                                                                                                 |
-|-----------------------------|---------|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| upsert                      | boolean | true           | When *true* Iceberg rows will be updated based on table primary key. When *false* all modification will be added as separate rows.                          |
-| upsert.keep-deletes         | boolean | true           | When *true* delete operation will leave a tombstone that will have only a primary key and *__deleted** flag set to true                                     |
-| upsert.dedup-column         | String  | __source_ts_ms | Column used to check which state is newer during upsert                                                                                                     | 
-| upsert.op-column            | String  | __op           | Column used to check which state is newer during upsert when *upsert.dedup-column* is not enough to resolve                                                 |
-| allow-field-addition        | boolean | true           | When *true* sink will be adding new columns to Iceberg tables on schema changes                                                                             |
-| table.auto-create           | boolean | false          | When *true* sink will automatically create new Iceberg tables                                                                                               |
-| table.namespace             | String  | default        | Table namespace. In Glue it will be used as database name                                                                                                   |
-| table.prefix                | String  | *empty string* | Prefix added to all table names                                                                                                                             |
-| iceberg.name                | String  | default        | Iceberg catalog name                                                                                                                                        |
-| iceberg.catalog-impl        | String  | *null*         | Iceberg catalog implementation (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time                             |
-| iceberg.type                | String  | *null*         | Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time)                                      |
-| iceberg.*                   |         |                | All properties with this prefix will be passed to Iceberg Catalog implementation                                                                            |
-| iceberg.table-default.*     |         |                | Iceberg specific table settings can be changed with this prefix, e.g. 'iceberg.table-default.write.format.default' can be set to 'orc'                      |
-| iceberg.partition.column    | String  | __source_ts    | Column used for partitioning. If the column already exists, it must be of type timestamp.                                                                   |
-| iceberg.partition.timestamp | String  | __source_ts_ms | Column containing unix millisecond timestamps to be converted to partitioning times. If equal to partition.column, values will be replaced with timestamps. |
+| Key                         | Type    | Default value    | Description                                                                                                                                                 |
+| --------------------------- | ------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| upsert                      | boolean | true             | When _true_ Iceberg rows will be updated based on table primary key. When _false_ all modification will be added as separate rows.                          |
+| upsert.keep-deletes         | boolean | true             | When _true_ delete operation will leave a tombstone that will have only a primary key and \*\_\_deleted\*\* flag set to true                                |
+| upsert.dedup-column         | String  | \_\_source_ts_ms | Column used to check which state is newer during upsert                                                                                                     |
+| upsert.op-column            | String  | \_\_op           | Column used to check which state is newer during upsert when _upsert.dedup-column_ is not enough to resolve                                                 |
+| allow-field-addition        | boolean | true             | When _true_ sink will be adding new columns to Iceberg tables on schema changes                                                                             |
+| table.auto-create           | boolean | false            | When _true_ sink will automatically create new Iceberg tables                                                                                               |
+| table.namespace             | String  | default          | Table namespace. In Glue it will be used as database name                                                                                                   |
+| table.prefix                | String  | _empty string_   | Prefix added to all table names                                                                                                                             |
+| iceberg.name                | String  | default          | Iceberg catalog name                                                                                                                                        |
+| iceberg.catalog-impl        | String  | _null_           | Iceberg catalog implementation (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time                             |
+| iceberg.type                | String  | _null_           | Iceberg catalog type (Only one of iceberg.catalog-impl and iceberg.type can be set to non null value at the same time)                                      |
+| iceberg.\*                  |         |                  | All properties with this prefix will be passed to Iceberg Catalog implementation                                                                            |
+| iceberg.table-default.\*    |         |                  | Iceberg specific table settings can be changed with this prefix, e.g. 'iceberg.table-default.write.format.default' can be set to 'orc'                      |
+| iceberg.partition.column    | String  | \_\_source_ts    | Column used for partitioning. If the column already exists, it must be of type timestamp.                                                                   |
+| iceberg.partition.timestamp | String  | \_\_source_ts_ms | Column containing unix millisecond timestamps to be converted to partitioning times. If equal to partition.column, values will be replaced with timestamps. |
+| iceberg.format-version      | String  | 2                | Specification for the Iceberg table format. Version 1: Analytic Data Tables. Version 2: Row-level Deletes. Default 2.                                       |
 
 ### REST / Manual based installation
 
 1. Copy content of `kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip` into Kafka Connect plugins directory. [Kafka Connect installing plugins](https://docs.confluent.io/home/connect/self-managed/userguide.html#connect-installing-plugins)
 
 2. POST `<kafka_connect_host>:<kafka_connect_port>/connectors`
+
 ```json
 {
   "name": "iceberg-sink",
   "config": {
     "connector.class": "com.getindata.kafka.connect.iceberg.sink.IcebergSink",
     "topics": "topic1,topic2",
-    
+
     "upsert": true,
     "upsert.keep-deletes": true,
-    
+
     "table.auto-create": true,
     "table.write-format": "parquet",
     "table.namespace": "my_namespace",
     "table.prefix": "debeziumcdc_",
-    
+
     "iceberg.catalog-impl": "org.apache.iceberg.aws.glue.GlueCatalog",
     "iceberg.warehouse": "s3a://my_bucket/iceberg",
     "iceberg.fs.defaultFS": "s3a://my_bucket/iceberg",
@@ -81,6 +83,7 @@ docker run -it --name connect --net=host -p 8083:8083 \
 ### Strimzi
 
 KafkaConnect:
+
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaConnect
@@ -122,19 +125,19 @@ spec:
     config.providers.secret.class: io.strimzi.kafka.KubernetesSecretConfigProvider
     config.providers.configmap.class: io.strimzi.kafka.KubernetesConfigMapConfigProvider
   build:
-      output:
-        type: docker
-        image: <yourdockerregistry>
-        pushSecret: <yourpushSecret>
-      plugins:
-        - name: debezium-postgresql
-          artifacts:
-            - type: zip
-              url: https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.0.0.Final/debezium-connector-postgres-2.0.0.Final-plugin.zip
-        - name: iceberg
-          artifacts:
-            - type: zip
-              url: https://github.com/TIKI-Institut/kafka-connect-iceberg-sink/releases/download/0.1.4-SNAPSHOT-hadoop-catalog-r3/kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip
+    output:
+      type: docker
+      image: <yourdockerregistry>
+      pushSecret: <yourpushSecret>
+    plugins:
+      - name: debezium-postgresql
+        artifacts:
+          - type: zip
+            url: https://repo1.maven.org/maven2/io/debezium/debezium-connector-postgres/2.0.0.Final/debezium-connector-postgres-2.0.0.Final-plugin.zip
+      - name: iceberg
+        artifacts:
+          - type: zip
+            url: https://github.com/TIKI-Institut/kafka-connect-iceberg-sink/releases/download/0.1.4-SNAPSHOT-hadoop-catalog-r3/kafka-connect-iceberg-sink-0.1.4-SNAPSHOT-plugin.zip
   resources:
     requests:
       cpu: "0.1"
@@ -151,6 +154,7 @@ spec:
 ```
 
 KafkaConnector Debezium Source
+
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaConnector
@@ -182,6 +186,7 @@ spec:
 ```
 
 KafkaConnector Iceberg Sink:
+
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaConnector
@@ -212,8 +217,8 @@ spec:
     iceberg.io-impl: "org.apache.iceberg.aws.s3.S3FileIO"
     iceberg.s3.endpoint: "http://minio:9000"
     iceberg.s3.path-style-access: true
-    iceberg.s3.access-key-id: ''
-    iceberg.s3.secret-access-key: ''
+    iceberg.s3.access-key-id: ""
+    iceberg.s3.secret-access-key: ""
     # Batch size tuning
     # See: https://stackoverflow.com/questions/51753883/increase-the-number-of-messages-read-by-a-kafka-consumer-in-a-single-poll
     # And the key prefix in Note: https://stackoverflow.com/a/66551961/2688589
@@ -225,6 +230,7 @@ spec:
 #### Hadoop s3a
 
 AWS credentials can be passed:
+
 1. As part of sink configuration under keys `iceberg.fs.s3a.access.key` and `iceberg.fs.s3a.secret.key`
 2. Using enviornment variables `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY`
 3. As ~/.aws/config file
@@ -299,13 +305,13 @@ Similar problem is with changing optionality of a column. If it was not defined 
 
 ### DML
 
-Rows cannot be updated nor removed unless primary key is defined. In case of deletion sink behavior is also dependent on upsert.keep-deletes option. When this option is set to true sink will leave a tombstone behind in a form of row containing only a primary key value and __deleted flat set to true. When option is set to false it will remove row entirely.
+Rows cannot be updated nor removed unless primary key is defined. In case of deletion sink behavior is also dependent on upsert.keep-deletes option. When this option is set to true sink will leave a tombstone behind in a form of row containing only a primary key value and \_\_deleted flat set to true. When option is set to false it will remove row entirely.
 
 ### Iceberg partitioning support
 
 The consumer reads unix millisecond timestamps from the event field configured in `iceberg.partition.timestamp`, converts them to iceberg
-timestamps, and writes them to the table column configured in `iceberg.partition.column`.  The timestamp column is then used to extract a 
-date to be used as the partitioning key. If `iceberg.partition.timestamp` is empty, `iceberg.parition.column` is assumed to already be of 
+timestamps, and writes them to the table column configured in `iceberg.partition.column`. The timestamp column is then used to extract a
+date to be used as the partitioning key. If `iceberg.partition.timestamp` is empty, `iceberg.parition.column` is assumed to already be of
 type timestamp, and no conversion is performed. If they are set to the same value, the integer values will be replaced by the converted
 timestamp values.
 
@@ -322,7 +328,7 @@ By default, the sink expects to receive events produced by a debezium source con
 
 ## Debezium change event format support
 
-Kafka Connect Iceberg Sink is expecting events in a format of *Debezium change event*. It uses however only an *after* portion of that event and some metadata.
+Kafka Connect Iceberg Sink is expecting events in a format of _Debezium change event_. It uses however only an _after_ portion of that event and some metadata.
 Minimal fields needed for the sink to work are:
 
 Kafka event key:

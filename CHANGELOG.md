@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2023-04-06
+
+-   Add `iceberg.format-version` config setting to indicate which Iceberg table format version is used.
+
 ## [0.3.0] - 2023-03-24
 
 -   Add `iceberg.partition` config setting to allow any column to be used for partitioning.
@@ -33,7 +37,7 @@
 
 ### Version Compatibility
 
-This Iceberg Sink depends on a Spark 3.2 Runtime, which depends on a specific jackson minor version. 
+This Iceberg Sink depends on a Spark 3.2 Runtime, which depends on a specific jackson minor version.
 Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor release (2.13)
 
 ## [0.1.3] - 2022-04-11
@@ -47,7 +51,9 @@ Kafka Connect >= 3.2.3 has updated the jackson version to an incompatible minor 
 
 -   First release
 
-[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.3.1...HEAD
+
+[0.3.1]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.3.0...0.3.1
 
 [0.3.0]: https://github.com/getindata/kafka-connect-iceberg-sink/compare/0.2.5...0.3.0
 
