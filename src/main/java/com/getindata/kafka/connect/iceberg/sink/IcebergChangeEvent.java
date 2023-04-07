@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -114,7 +115,7 @@ public class IcebergChangeEvent {
       case "int16":
       case "int32": // int 4 bytes
         if (IcebergChangeEvent.coerceDebeziumDate && fieldTypeName.equals("io.debezium.time.Date")) {
-          return Types.StringType.get();
+          return Types.DateType.get();
         }
         else {
           return Types.IntegerType.get();
@@ -122,7 +123,7 @@ public class IcebergChangeEvent {
       case "int64": // long 8 bytes
         if (IcebergChangeEvent.coerceDebeziumMicroTimestamp &&
             fieldTypeName.equals("io.debezium.time.MicroTimestamp")) {
-          return Types.StringType.get();
+          return Types.TimestampType.withoutZone();
         }
         else {
           return Types.LongType.get();
@@ -171,25 +172,17 @@ public class IcebergChangeEvent {
       case BOOLEAN:
         val = node.isNull() ? null : node.asBoolean();
         break;
+      case DATE:
+        val = node.isNull() ? null
+              : LocalDate.ofEpochDay(node.asInt());
+        break;
+      case TIMESTAMP:
+        val = node.isNull() ? null
+              : LocalDateTime.ofInstant(Instant.ofEpochSecond(0L, node.asLong() * 1000), ZoneOffset.UTC);
+        break;
       case STRING:
-        // string destination coercions based upon schema 'name' annotations
-        if (IcebergChangeEvent.coerceDebeziumDate &&
-            fieldTypeName.equals("io.debezium.time.Date")) {
-          val = node.isNull() ? null
-                : LocalDate.ofEpochDay(node.asInt()).toString();
-        }
-        else {
-          if (IcebergChangeEvent.coerceDebeziumMicroTimestamp &&
-              fieldTypeName.equals("io.debezium.time.MicroTimestamp")) {
-            val = node.isNull() ? null
-                  : Instant.ofEpochSecond(0L, node.asLong() * 1000).toString();
-          }
-          else {
-            // if the node is not a value node (method isValueNode returns false), convert it to string.
-            val = node.isValueNode() ? node.asText(null)
-                  : node.toString();
-          }
-        }
+        // if the node is not a value node (method isValueNode returns false), convert it to string.
+        val = node.isValueNode() ? node.asText(null) : node.toString();
         break;
       case BINARY:
         try {
