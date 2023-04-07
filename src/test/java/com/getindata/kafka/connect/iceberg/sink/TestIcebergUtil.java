@@ -27,6 +27,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -188,14 +190,18 @@ class TestIcebergUtil {
                                           MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
                                           MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
         Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema);
-        String schemaString = schema.toString();
-        String recordString = record.toString();
 
-        assertTrue(schemaString.contains("ship_date: optional string (io.debezium.time.Date)"));
-        assertTrue(schemaString.contains("ship_timestamp: optional string (io.debezium.time.MicroTimestamp)"));
-        assertTrue(recordString.contains("2182-08-20"));
-        assertTrue(recordString.contains("2182-08-19T21:50:56.016196Z"));
+        Types.NestedField ship_date = schema.findField("ship_date");
+        assertEquals(ship_date.type(), Types.DateType.get());
+        assertEquals(ship_date.doc(), "io.debezium.time.Date");
+
+        Types.NestedField ship_timestamp = schema.findField("ship_timestamp");
+        assertEquals(ship_timestamp.type(), Types.TimestampType.withoutZone());
+        assertEquals(ship_timestamp.doc(), "io.debezium.time.MicroTimestamp");
+
+        GenericRecord record = e.asIcebergRecord(schema);
+        assertEquals(record.getField("ship_date"), LocalDate.parse("2182-08-20"));
+        assertEquals(record.getField("ship_timestamp"), LocalDateTime.parse("2182-08-19T21:50:56.016196"));
     }
 
     @Test
