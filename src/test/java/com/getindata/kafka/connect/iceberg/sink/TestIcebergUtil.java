@@ -52,6 +52,7 @@ class TestIcebergUtil {
     private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
 
     final String customPartitionColumn = Testing.Files.readResourceAsString("json/custom-partition-column.json");
+    final String debeziumMetadataSchema = Testing.Files.readResourceAsString("json/debezium-metadata-schema.json");
 
     private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
 
