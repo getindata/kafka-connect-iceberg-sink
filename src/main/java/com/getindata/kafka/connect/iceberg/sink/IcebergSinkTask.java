@@ -26,8 +26,6 @@ public class IcebergSinkTask extends SinkTask {
     public void start(Map<String, String> properties) {
         LOGGER.info("Task starting");
         IcebergSinkConfiguration configuration = new IcebergSinkConfiguration(properties);
-        // provide type coercion configuration IcebergChangeEvent
-        configuration.configureChangeEvent();
         Catalog icebergCatalog = IcebergCatalogFactory.create(configuration);
         IcebergTableOperator icebergTableOperator = IcebergTableOperatorFactory.create(configuration);
         SinkRecordToIcebergChangeEventConverter converter = SinkRecordToIcebergChangeEventConverterFactory.create(configuration);

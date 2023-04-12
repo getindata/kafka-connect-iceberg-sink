@@ -53,6 +53,8 @@ class TestIcebergUtil {
 
     final String customPartitionColumn = Testing.Files.readResourceAsString("json/custom-partition-column.json");
 
+    private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
+
     @Test
     public void testNestedJsonRecord() throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
@@ -304,61 +306,48 @@ class TestIcebergUtil {
     }
 
     @Test
-    public void coerceDebeziumTimeTypesDefaultBehavior(@TempDir Path localWarehouseDir)
+    public void coerceDebeziumTemporalTypesDefaultBehavior()
       throws JsonProcessingException {
-        IcebergSinkConfiguration config = TestConfig.builder()
-                .withLocalCatalog(localWarehouseDir)
-                .build();
-        config.configureChangeEvent();
-        IcebergChangeEvent e = new IcebergChangeEvent("test",
-                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
-                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
-        Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema);
-        String schemaString = schema.toString();
-        String recordString = record.toString();
+        IcebergChangeEvent event = new IcebergChangeEvent(
+                "test",
+                MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
+                MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
+                this.defaultConfiguration
+        );
 
-        assertTrue(schemaString.contains("ship_date: optional int (io.debezium.time.Date)"));
-        assertTrue(schemaString.contains("ship_timestamp: optional long (io.debezium.time.MicroTimestamp)"));
-        assertTrue(recordString.contains("77663"));
-        assertTrue(recordString.contains("6710075456016196"));
+        assertPrimitiveTemporalValues(event);
     }
 
     @Test
-    public void coerceDebeziumTimeTypesDisabledBehavior(@TempDir Path localWarehouseDir)
+    public void coerceDebeziumTemporalTypesDisabledBehavior(@TempDir Path localWarehouseDir)
       throws JsonProcessingException {
         IcebergSinkConfiguration config = TestConfig.builder()
                 .withLocalCatalog(localWarehouseDir)
-                .withCustomProperty("coerce.debezium-date", "false")
-                .withCustomProperty("coerce.debezium-micro-timestamp", "false")
+                .withCustomProperty("rich-temporal-types", "false")
                 .build();
-        config.configureChangeEvent();
-        IcebergChangeEvent e = new IcebergChangeEvent("test",
-                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
-                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
-        Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema);
-        String schemaString = schema.toString();
-        String recordString = record.toString();
+        IcebergChangeEvent event = new IcebergChangeEvent(
+                "test",
+                MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
+                MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
+                config
+        );
 
-        assertTrue(schemaString.contains("ship_date: optional int (io.debezium.time.Date)"));
-        assertTrue(schemaString.contains("ship_timestamp: optional long (io.debezium.time.MicroTimestamp)"));
-        assertTrue(recordString.contains("77663"));
-        assertTrue(recordString.contains("6710075456016196"));
+        assertPrimitiveTemporalValues(event);
     }
 
     @Test
-    public void coerceDebeziumTimeTypesEnabledBehavior(@TempDir Path localWarehouseDir)
+    public void coerceDebeziumTemporalTypesEnabledBehavior(@TempDir Path localWarehouseDir)
       throws JsonProcessingException {
-        IcebergSinkConfiguration config = TestConfig.builder()
+        IcebergSinkConfiguration configuration = TestConfig.builder()
                 .withLocalCatalog(localWarehouseDir)
-                .withCustomProperty("coerce.debezium-date", "true")
-                .withCustomProperty("coerce.debezium-micro-timestamp", "true")
+                .withCustomProperty("rich-temporal-types", "true")
                 .build();
-        config.configureChangeEvent();
-        IcebergChangeEvent e = new IcebergChangeEvent("test",
-                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
-                                          MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null);
+        IcebergChangeEvent e = new IcebergChangeEvent(
+                "test",
+                MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
+                MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
+                configuration
+        );
         Schema schema = e.icebergSchema();
         GenericRecord record = e.asIcebergRecord(schema);
         String schemaString = schema.toString();

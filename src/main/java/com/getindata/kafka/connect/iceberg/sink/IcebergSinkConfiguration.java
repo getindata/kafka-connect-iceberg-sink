@@ -11,8 +11,6 @@ import static org.apache.kafka.common.config.ConfigDef.Importance.MEDIUM;
 import static org.apache.kafka.common.config.ConfigDef.Type.BOOLEAN;
 import static org.apache.kafka.common.config.ConfigDef.Type.STRING;
 
-import com.getindata.kafka.connect.iceberg.sink.IcebergChangeEvent;
-
 public class IcebergSinkConfiguration {
     public static final String UPSERT = "upsert";
     public static final String UPSERT_KEEP_DELETES = "upsert.keep-deletes";
@@ -170,10 +168,5 @@ public class IcebergSinkConfiguration {
 
     public Map<String, String> getProperties() {
         return properties;
-    }
-
-    public void configureChangeEvent() {
-        IcebergChangeEvent.setCoerceDebeziumDate(this.isCoerceDebeziumDate());
-        IcebergChangeEvent.setCoerceDebeziumMicroTimestamp(this.isCoerceDebeziumMicroTimestamp());
     }
 }
