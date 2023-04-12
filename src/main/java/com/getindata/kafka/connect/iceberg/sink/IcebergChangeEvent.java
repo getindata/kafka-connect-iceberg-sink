@@ -181,7 +181,7 @@ public class IcebergChangeEvent {
         break;
       case TIMESTAMP:
         if (node.isTextual()) {
-          val = ZonedDateTime.parse(node.asText());
+          val = OffsetDateTime.parse(node.asText());
         }
         else if (node.isNumber()) {
           Instant instant = Instant.ofEpochSecond(0L, node.asLong() * 1000);

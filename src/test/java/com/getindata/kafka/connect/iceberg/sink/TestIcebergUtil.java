@@ -232,7 +232,7 @@ class TestIcebergUtil {
         GenericRecord record = e.asIcebergRecord(schema);
         assertEquals(record.getField("ship_date"), LocalDate.parse("2182-08-20"));
         assertEquals(record.getField("ship_timestamp"), LocalDateTime.parse("2182-08-19T21:50:56.016196"));
-        assertEquals(record.getField("ship_timestamp_zoned"), ZonedDateTime.parse("2023-04-11T20:32:46.821144Z"));
+        assertEquals(record.getField("ship_timestamp_zoned"), OffsetDateTime.parse("2023-04-11T20:32:46.821144Z"));
         assertEquals(record.getField("ship_time"), LocalTime.ofNanoOfDay(73966821144L * 1000));
         assertEquals(record.getField("ship_time_zoned"), OffsetTime.parse("20:32:46.821144Z").toLocalTime());
     }
