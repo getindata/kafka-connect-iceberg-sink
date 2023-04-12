@@ -50,7 +50,8 @@ class TestIcebergUtil {
     public void testNestedJsonRecord() throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(serdeWithSchema).get("payload"), null,
-                MAPPER.readTree(serdeWithSchema).get("schema"), null, this.defaultConfiguration);
+                MAPPER.readTree(serdeWithSchema).get("schema"), null,
+                this.defaultConfiguration);
         Schema schema = e.icebergSchema();
         assertTrue(schema.toString().contains("before: optional struct<2: id: optional int (), 3: first_name: optional string (), " +
                 "4:"));
@@ -60,7 +61,8 @@ class TestIcebergUtil {
     public void testUnwrapJsonRecord() throws IOException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(unwrapWithSchema).get("payload"), null,
-                MAPPER.readTree(unwrapWithSchema).get("schema"), null, this.defaultConfiguration);
+                MAPPER.readTree(unwrapWithSchema).get("schema"), null,
+                this.defaultConfiguration);
         Schema schema = e.icebergSchema();
         GenericRecord record = e.asIcebergRecord(schema);
         assertEquals("orders", record.getField("__table").toString());
@@ -71,7 +73,8 @@ class TestIcebergUtil {
     public void testNestedArrayJsonRecord() throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(unwrapWithArraySchema).get("payload"), null,
-                MAPPER.readTree(unwrapWithArraySchema).get("schema"), null, this.defaultConfiguration);
+                MAPPER.readTree(unwrapWithArraySchema).get("schema"), null,
+                this.defaultConfiguration);
         Schema schema = e.icebergSchema();
         assertTrue(schema.asStruct().toString().contains("struct<1: name: optional string (), 2: pay_by_quarter: optional list<int> (), 4: schedule: optional list<string> (), 6:"));
         System.out.println(schema.findField("pay_by_quarter").type().asListType().elementType());
@@ -87,7 +90,8 @@ class TestIcebergUtil {
         assertThrows(RuntimeException.class, () -> {
             IcebergChangeEvent e = new IcebergChangeEvent("test",
                     MAPPER.readTree(unwrapWithArraySchema2).get("payload"), null,
-                    MAPPER.readTree(unwrapWithArraySchema2).get("schema"), null, this.defaultConfiguration);
+                    MAPPER.readTree(unwrapWithArraySchema2).get("schema"), null,
+                    this.defaultConfiguration);
             Schema schema = e.icebergSchema();
             System.out.println(schema.asStruct());
             System.out.println(schema);
@@ -100,7 +104,8 @@ class TestIcebergUtil {
     public void testNestedGeomJsonRecord() throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(unwrapWithGeomSchema).get("payload"), null,
-                MAPPER.readTree(unwrapWithGeomSchema).get("schema"), null, this.defaultConfiguration);
+                MAPPER.readTree(unwrapWithGeomSchema).get("schema"), null,
+                this.defaultConfiguration);
         Schema schema = e.icebergSchema();
         GenericRecord record = e.asIcebergRecord(schema);
         assertTrue(schema.toString().contains("g: optional struct<3: wkb: optional string (), 4: srid: optional int ()>"));

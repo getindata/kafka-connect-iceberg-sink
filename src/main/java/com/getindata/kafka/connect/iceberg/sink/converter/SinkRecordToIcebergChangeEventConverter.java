@@ -26,7 +26,8 @@ public class SinkRecordToIcebergChangeEventConverter {
                                                    JsonConverter keyJsonConverter,
                                                    JsonConverter valueJsonConverter,
                                                    Deserializer<JsonNode> keyDeserializer,
-                                                   Deserializer<JsonNode> valueDeserializer, IcebergSinkConfiguration configuration) {
+                                                   Deserializer<JsonNode> valueDeserializer,
+                                                   IcebergSinkConfiguration configuration) {
         this.extractNewRecordStateTransformation = extractNewRecordStateTransformation;
         this.keyJsonConverter = keyJsonConverter;
         this.valueJsonConverter = valueJsonConverter;
