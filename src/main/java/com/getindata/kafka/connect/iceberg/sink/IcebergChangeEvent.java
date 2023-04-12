@@ -20,11 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.*;
 
 /**
@@ -37,25 +33,17 @@ public class IcebergChangeEvent {
   private final JsonNode value;
   private final JsonNode key;
   private final JsonSchema jsonSchema;
-  private static boolean coerceDebeziumDate = false;
-  private static boolean coerceDebeziumMicroTimestamp = false;
-
-  public static void setCoerceDebeziumDate(boolean value) {
-      coerceDebeziumDate = value;
-  }
-
-  public static void setCoerceDebeziumMicroTimestamp(boolean value) {
-      coerceDebeziumMicroTimestamp = value;
-  }
+  private final IcebergSinkConfiguration configuration;
 
   public IcebergChangeEvent(String destination,
                             JsonNode value,
                             JsonNode key,
                             JsonNode valueSchema,
-                            JsonNode keySchema) {
+                            JsonNode keySchema, IcebergSinkConfiguration configuration) {
     this.destination = destination;
     this.value = value;
     this.key = key;
+    this.configuration = configuration;
     this.jsonSchema = new JsonSchema(valueSchema, keySchema);
   }
 
@@ -114,16 +102,21 @@ public class IcebergChangeEvent {
       case "int8":
       case "int16":
       case "int32": // int 4 bytes
-        if (IcebergChangeEvent.coerceDebeziumDate && fieldTypeName.equals("io.debezium.time.Date")) {
+        if (configuration.isRichTemporalTypes() &&
+            fieldTypeName.equals("io.debezium.time.Date")) {
           return Types.DateType.get();
         }
         else {
           return Types.IntegerType.get();
         }
       case "int64": // long 8 bytes
-        if (IcebergChangeEvent.coerceDebeziumMicroTimestamp &&
+        if (configuration.isRichTemporalTypes() &&
             fieldTypeName.equals("io.debezium.time.MicroTimestamp")) {
           return Types.TimestampType.withoutZone();
+        }
+        else if (configuration.isRichTemporalTypes() &&
+                 fieldTypeName.equals("io.debezium.time.MicroTime")) {
+          return Types.TimeType.get();
         }
         else {
           return Types.LongType.get();
@@ -139,7 +132,17 @@ public class IcebergChangeEvent {
       case "boolean":
         return Types.BooleanType.get();
       case "string":
-        return Types.StringType.get();
+        if (configuration.isRichTemporalTypes() &&
+            fieldTypeName.equals("io.debezium.time.ZonedTimestamp")) {
+          return Types.TimestampType.withZone();
+        }
+        else if (configuration.isRichTemporalTypes() &&
+                 fieldTypeName.equals("io.debezium.time.ZonedTime")) {
+          return Types.TimeType.get();
+        }
+        else {
+          return Types.StringType.get();
+        }
       case "bytes":
         return Types.BinaryType.get();
       default:
@@ -177,8 +180,35 @@ public class IcebergChangeEvent {
               : LocalDate.ofEpochDay(node.asInt());
         break;
       case TIMESTAMP:
-        val = node.isNull() ? null
-              : LocalDateTime.ofInstant(Instant.ofEpochSecond(0L, node.asLong() * 1000), ZoneOffset.UTC);
+        if (node.isTextual()) {
+          val = ZonedDateTime.parse(node.asText());
+        }
+        else if (node.isNumber()) {
+          Instant instant = Instant.ofEpochSecond(0L, node.asLong() * 1000);
+          val = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+        }
+        else if (node.isNull()){
+          val = null;
+        }
+        else {
+          throw new RuntimeException("Unrecognized JSON node type for Iceberg type TIMESTAMP: " + node.getNodeType());
+        }
+        break;
+      case TIME:
+        if (node.isLong()) {
+          val = LocalTime.ofNanoOfDay(node.asLong() * 1000);
+        }
+        else if (node.isTextual()) {
+          // Debezium converts ZonedTime values to UTC on capture, so no information is lost by converting them
+          // to LocalTimes here. Iceberg doesn't support a ZonedTime equivalent anyway.
+          val = OffsetTime.parse(node.asText()).toLocalTime();
+        }
+        else if (node.isNull()){
+          val = null;
+        }
+        else {
+          throw new RuntimeException("Unrecognized JSON node type for Iceberg type TIME: " + node.getNodeType());
+        }
         break;
       case STRING:
         // if the node is not a value node (method isValueNode returns false), convert it to string.

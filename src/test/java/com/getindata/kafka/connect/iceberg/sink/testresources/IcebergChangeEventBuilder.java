@@ -13,7 +13,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.getindata.kafka.connect.iceberg.sink.IcebergChangeEvent;
+import com.getindata.kafka.connect.iceberg.sink.IcebergSinkConfiguration;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -27,6 +29,8 @@ public class IcebergChangeEventBuilder {
   ObjectNode payload = JsonNodeFactory.instance.objectNode();
   ObjectNode keyPayload = JsonNodeFactory.instance.objectNode();
   String destination = "test";
+
+  private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
 
   public IcebergChangeEventBuilder() {
   }
@@ -104,8 +108,8 @@ public class IcebergChangeEventBuilder {
         payload,
         keyPayload,
         this.valueSchema(),
-        this.keySchema()
-    );
+        this.keySchema(),
+        this.defaultConfiguration);
   }
 
   private ObjectNode valueSchema() {
