@@ -249,7 +249,9 @@ class TestIcebergUtil {
       throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                                           MAPPER.readTree(debeziumMetadataSchema).get("payload"), null,
-                                          MAPPER.readTree(debeziumMetadataSchema).get("schema"), null);
+                                          MAPPER.readTree(debeziumMetadataSchema).get("schema"), null,
+                                          defaultConfiguration
+        );
         Schema schema = e.icebergSchema();
         String schemaString = schema.toString();
 
