@@ -248,9 +248,9 @@ class TestIcebergUtil {
     public void listStructSchemaHandling()
       throws JsonProcessingException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
-                                          MAPPER.readTree(debeziumMetadataSchema).get("payload"), null,
-                                          MAPPER.readTree(debeziumMetadataSchema).get("schema"), null,
-                                          defaultConfiguration
+                MAPPER.readTree(debeziumMetadataSchema).get("payload"), null,
+                MAPPER.readTree(debeziumMetadataSchema).get("schema"), null,
+                defaultConfiguration
         );
         Schema schema = e.icebergSchema();
         String schemaString = schema.toString();
@@ -261,19 +261,19 @@ class TestIcebergUtil {
 
         GenericRecord innerRecord = (GenericRecord) ((ArrayList) record.getField("data_collections")).get(0);
         Object value = innerRecord.getField("data_collection");
-        assertTrue(value.equals("public.mine"));
+        assertEquals("public.mine", value);
 
         value = innerRecord.getField("event_count");
-        assertTrue((long) value == 1);
+        assertEquals(1L, value);
 
         value = record.getField("status");
-        assertTrue(((String) value).equals("END"));
+        assertEquals("END", value);
 
         value = record.getField("id");
-        assertTrue(((String) value).equals("12117:67299632"));
+        assertEquals("12117:67299632", value);
 
         value = record.getField("ts_ms");
-        assertTrue(((long) value) == 1680821545908L);
+        assertEquals(1680821545908L, value);
     }
 
     @Test
