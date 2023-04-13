@@ -1,5 +1,7 @@
 # Changelog
 
+- Updates AWS lakeformation transitive dependency providing lakeformation support in s3 iceberg tables.
+
 ## [Unreleased]
 
 - Updates dependencies to resolve some jackson-databind critical CVEs.
