@@ -72,6 +72,12 @@
         </dependency>
 
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>lakeformation</artifactId>
+            <version>2.20.45</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.iceberg</groupId>
             <artifactId>iceberg-spark-runtime-3.2_2.13</artifactId>
             <version>${iceberg.version}</version>
