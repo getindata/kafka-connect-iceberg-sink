@@ -1,0 +1,62 @@
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "int32",
+        "optional": false,
+        "field": "id"
+      },
+      {
+        "type": "int32",
+        "optional": false,
+        "name": "io.debezium.time.Date",
+        "version": 1,
+        "field": "ship_date"
+      },
+      {
+        "type": "int64",
+        "optional": true,
+        "name": "io.debezium.time.MicroTimestamp",
+        "field": "ship_timestamp"
+      },
+      {
+        "type": "string",
+        "optional": true,
+        "name": "io.debezium.time.ZonedTimestamp",
+        "version": 1,
+        "field": "ship_timestamp_zoned"
+      },
+      {
+        "type": "int64",
+        "optional": true,
+        "name": "io.debezium.time.MicroTime",
+        "version": 1,
+        "default": 0,
+        "field": "ship_time"
+      },
+      {
+        "type": "string",
+        "optional": true,
+        "name": "io.debezium.time.ZonedTime",
+        "version": 1,
+        "field": "ship_time_zoned"
+      }
+    ],
+    "optional": false,
+    "name": "testc.ship.time.Value"
+  },
+  "payload": {
+    "id": 10003,
+    "ship_date": 77663,
+    "ship_timestamp": 6710075456016196,
+    "ship_timestamp_zoned": "2023-04-11T20:32:46.821144Z",
+    "ship_time": 73966821144,
+    "ship_time_zoned": "20:32:46.821144Z",
+    "__op": "r",
+    "__table": "time",
+    "__lsn": 33832960,
+    "__source_ts_ms": 1596309876678,
+    "__deleted": "false"
+  }
+}

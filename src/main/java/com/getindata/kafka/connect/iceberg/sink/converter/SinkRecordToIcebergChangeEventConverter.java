@@ -3,6 +3,7 @@ package com.getindata.kafka.connect.iceberg.sink.converter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.getindata.kafka.connect.iceberg.sink.IcebergChangeEvent;
+import com.getindata.kafka.connect.iceberg.sink.IcebergSinkConfiguration;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.json.JsonConverter;
@@ -19,17 +20,20 @@ public class SinkRecordToIcebergChangeEventConverter {
     private final JsonConverter valueJsonConverter;
     private final Deserializer<JsonNode> keyDeserializer;
     private final Deserializer<JsonNode> valueDeserializer;
+    private final IcebergSinkConfiguration configuration;
 
     public SinkRecordToIcebergChangeEventConverter(Transformation<SinkRecord> extractNewRecordStateTransformation,
                                                    JsonConverter keyJsonConverter,
                                                    JsonConverter valueJsonConverter,
                                                    Deserializer<JsonNode> keyDeserializer,
-                                                   Deserializer<JsonNode> valueDeserializer) {
+                                                   Deserializer<JsonNode> valueDeserializer,
+                                                   IcebergSinkConfiguration configuration) {
         this.extractNewRecordStateTransformation = extractNewRecordStateTransformation;
         this.keyJsonConverter = keyJsonConverter;
         this.valueJsonConverter = valueJsonConverter;
         this.keyDeserializer = keyDeserializer;
         this.valueDeserializer = valueDeserializer;
+        this.configuration = configuration;
     }
 
     public IcebergChangeEvent convert(SinkRecord record) {
@@ -41,7 +45,7 @@ public class SinkRecordToIcebergChangeEventConverter {
         JsonNode value = getValue(unwrappedRecord.topic(), valueDeserializer, valueBytes);
         JsonNode valueSchema = getSchema(valueBytes);
 
-        return new IcebergChangeEvent(unwrappedRecord.topic(), value, key, valueSchema, keySchema);
+        return new IcebergChangeEvent(unwrappedRecord.topic(), value, key, valueSchema, keySchema, configuration);
     }
 
     private JsonNode getValue(String topic, Deserializer<JsonNode> deserializer, byte[] bytes) {
