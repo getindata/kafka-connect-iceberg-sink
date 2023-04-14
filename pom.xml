@@ -15,7 +15,7 @@
 
         <!-- versions -->
         <kafka.connect.version>3.2.2</kafka.connect.version>
-        <iceberg.version>1.0.0</iceberg.version>
+        <iceberg.version>1.2.1</iceberg.version>
         <debezium.version>1.9.7.Final</debezium.version>
         <hadoop.version>3.3.3</hadoop.version>
         <awssdk.version>2.17.295</awssdk.version>
