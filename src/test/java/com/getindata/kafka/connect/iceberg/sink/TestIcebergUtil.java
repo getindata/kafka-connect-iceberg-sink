@@ -31,6 +31,7 @@ import java.time.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,6 +44,7 @@ class TestIcebergUtil {
     final String unwrapWithArraySchema = Testing.Files.readResourceAsString("json/serde-with-array.json");
     final String unwrapWithArraySchema2 = Testing.Files.readResourceAsString("json/serde-with-array2.json");
     final String debeziumTimeCoercionSchema = Testing.Files.readResourceAsString("json/debezium-annotated-schema.json");
+    final String debeziumMetadataSchema = Testing.Files.readResourceAsString("json/debezium-metadata-schema.json");
 
     private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
 
@@ -240,6 +242,38 @@ class TestIcebergUtil {
         assertEquals(record.getField("ship_timestamp_zoned"), OffsetDateTime.parse("2023-04-11T20:32:46.821144Z"));
         assertEquals(record.getField("ship_time"), LocalTime.ofNanoOfDay(73966821144L * 1000));
         assertEquals(record.getField("ship_time_zoned"), OffsetTime.parse("20:32:46.821144Z").toLocalTime());
+    }
+
+    @Test
+    public void listStructSchemaHandling()
+      throws JsonProcessingException {
+        IcebergChangeEvent e = new IcebergChangeEvent("test",
+                MAPPER.readTree(debeziumMetadataSchema).get("payload"), null,
+                MAPPER.readTree(debeziumMetadataSchema).get("schema"), null,
+                defaultConfiguration
+        );
+        Schema schema = e.icebergSchema();
+        String schemaString = schema.toString();
+
+        GenericRecord record = e.asIcebergRecord(schema);
+
+        assertTrue(schemaString.contains("data_collections: optional list<struct"));
+
+        GenericRecord innerRecord = (GenericRecord) ((ArrayList) record.getField("data_collections")).get(0);
+        Object value = innerRecord.getField("data_collection");
+        assertEquals("public.mine", value);
+
+        value = innerRecord.getField("event_count");
+        assertEquals(1L, value);
+
+        value = record.getField("status");
+        assertEquals("END", value);
+
+        value = record.getField("id");
+        assertEquals("12117:67299632", value);
+
+        value = record.getField("ts_ms");
+        assertEquals(1680821545908L, value);
     }
 
     @Test

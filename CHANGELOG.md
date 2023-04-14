@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Added Iceberg coercion support for Avro Array<Struct> types. Supports Debezium `data_collections` metadata.
 - Added support for coercion of five Debezium temporal types to their Iceberg equivalents: Date, MicroTimestamp, ZonedTimestamp, MicroTime, and ZonedTime
 - Rich temporal types are toggled on by new boolean configuration property: `rich-temporal-types`
 
