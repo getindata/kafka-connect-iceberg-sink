@@ -1,5 +1,7 @@
 # Changelog
 
+- Updates AWS lakeformation transitive dependency providing lakeformation support in s3 iceberg tables.
+
 ## [Unreleased]
 
 - Added Iceberg coercion support for Avro Array<Struct> types. Supports Debezium `data_collections` metadata.
