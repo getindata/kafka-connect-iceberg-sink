@@ -1,9 +1,9 @@
 # Changelog
 
-- Updates AWS lakeformation transitive dependency providing lakeformation support in s3 iceberg tables.
-
 ## [Unreleased]
 
+- Updates dependencies to resolve some jackson-databind critical CVEs.
+- Updates AWS lakeformation transitive dependency providing lakeformation support in s3 iceberg tables.
 - Added Iceberg coercion support for Avro Array<Struct> types. Supports Debezium `data_collections` metadata.
 - Added support for coercion of five Debezium temporal types to their Iceberg equivalents: Date, MicroTimestamp, ZonedTimestamp, MicroTime, and ZonedTime
 - Rich temporal types are toggled on by new boolean configuration property: `rich-temporal-types`
