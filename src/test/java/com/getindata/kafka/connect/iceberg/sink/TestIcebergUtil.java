@@ -48,11 +48,7 @@ class TestIcebergUtil {
     final String unwrapWithArraySchema2 = Testing.Files.readResourceAsString("json/serde-with-array2.json");
     final String debeziumTimeCoercionSchema = Testing.Files.readResourceAsString("json/debezium-annotated-schema.json");
     final String debeziumMetadataSchema = Testing.Files.readResourceAsString("json/debezium-metadata-schema.json");
-
-    private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
-
     final String customPartitionColumn = Testing.Files.readResourceAsString("json/custom-partition-column.json");
-    final String debeziumMetadataSchema = Testing.Files.readResourceAsString("json/debezium-metadata-schema.json");
 
     private final IcebergSinkConfiguration defaultConfiguration = new IcebergSinkConfiguration(new HashMap());
 
@@ -62,7 +58,7 @@ class TestIcebergUtil {
                 MAPPER.readTree(serdeWithSchema).get("payload"), null,
                 MAPPER.readTree(serdeWithSchema).get("schema"), null, this.defaultConfiguration);
         Schema schema = e.icebergSchema(defaultPartitionColumn);
-        assertTrue(schema.toString().contains("before: optional struct<2: id: optional int (), " + 
+        assertTrue(schema.toString().contains("before: optional struct<2: id: optional int (), " +
                 "3: first_name: optional string (), 4:"));
     }
 
@@ -113,6 +109,7 @@ class TestIcebergUtil {
                 MAPPER.readTree(unwrapWithGeomSchema).get("payload"), null,
                 MAPPER.readTree(unwrapWithGeomSchema).get("schema"), null, this.defaultConfiguration);
         Schema schema = e.icebergSchema(defaultPartitionColumn);
+
         GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
         assertTrue(schema.toString().contains("g: optional struct<3: wkb: optional string (), 4: srid: optional int ()>"));
         GenericRecord g = (GenericRecord) record.getField("g");
@@ -127,7 +124,7 @@ class TestIcebergUtil {
     public void testConvertPartitionTimestampRecord() throws IOException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(customPartitionColumn).get("payload"), null,
-                MAPPER.readTree(customPartitionColumn).get("schema"), null);
+                MAPPER.readTree(customPartitionColumn).get("schema"), null, this.defaultConfiguration);
         Schema schema = e.icebergSchema(defaultPartitionColumn);
         GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, "timestamp");
         assertEquals("2023-03-20T18:25:27.865Z", record.getField(defaultPartitionColumn).toString());
@@ -140,7 +137,7 @@ class TestIcebergUtil {
     public void testConvertPartitionColumnRecord() throws IOException {
         IcebergChangeEvent e = new IcebergChangeEvent("test",
                 MAPPER.readTree(customPartitionColumn).get("payload"), null,
-                MAPPER.readTree(customPartitionColumn).get("schema"), null);
+                MAPPER.readTree(customPartitionColumn).get("schema"), null, this.defaultConfiguration);
         Schema schema = e.icebergSchema("timestamp");
         GenericRecord record = e.asIcebergRecord(schema, "timestamp", "timestamp");
         assertEquals("2023-03-20T18:25:27.865Z", record.getField("timestamp").toString());
@@ -171,7 +168,7 @@ class TestIcebergUtil {
     }
 
     private void assertPrimitiveTemporalValues(IcebergChangeEvent event) {
-        Schema schema = event.icebergSchema();
+        Schema schema = event.icebergSchema(defaultPartitionColumn);
 
         Types.NestedField ship_date = schema.findField("ship_date");
         assertEquals(Types.IntegerType.get(), ship_date.type());
@@ -193,85 +190,12 @@ class TestIcebergUtil {
         assertEquals(Types.StringType.get(), ship_time_zoned.type());
         assertEquals("io.debezium.time.ZonedTime", ship_time_zoned.doc());
 
-        GenericRecord record = event.asIcebergRecord(schema);
+        GenericRecord record = event.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
         assertEquals(record.getField("ship_date"), 77663);
         assertEquals(record.getField("ship_timestamp"), 6710075456016196L);
         assertEquals(record.getField("ship_timestamp_zoned"), "2023-04-11T20:32:46.821144Z");
         assertEquals(record.getField("ship_time"), 73966821144L);
         assertEquals(record.getField("ship_time_zoned"), "20:32:46.821144Z");
-    }
-
-    @Test
-    public void coerceDebeziumTemporalTypesDefaultBehavior()
-      throws JsonProcessingException {
-        IcebergChangeEvent event = new IcebergChangeEvent(
-                "test",
-                MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
-                MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
-                this.defaultConfiguration
-        );
-
-        assertPrimitiveTemporalValues(event);
-    }
-
-    @Test
-    public void coerceDebeziumTemporalTypesDisabledBehavior(@TempDir Path localWarehouseDir)
-      throws JsonProcessingException {
-        IcebergSinkConfiguration config = TestConfig.builder()
-                .withLocalCatalog(localWarehouseDir)
-                .withCustomProperty("rich-temporal-types", "false")
-                .build();
-        IcebergChangeEvent event = new IcebergChangeEvent(
-                "test",
-                MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
-                MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
-                config
-        );
-
-        assertPrimitiveTemporalValues(event);
-    }
-
-    @Test
-    public void coerceDebeziumTemporalTypesEnabledBehavior(@TempDir Path localWarehouseDir)
-      throws JsonProcessingException {
-        IcebergSinkConfiguration configuration = TestConfig.builder()
-                .withLocalCatalog(localWarehouseDir)
-                .withCustomProperty("rich-temporal-types", "true")
-                .build();
-        IcebergChangeEvent e = new IcebergChangeEvent(
-                "test",
-                MAPPER.readTree(debeziumTimeCoercionSchema).get("payload"), null,
-                MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
-                configuration
-        );
-        Schema schema = e.icebergSchema();
-
-        Types.NestedField ship_date = schema.findField("ship_date");
-        assertEquals(ship_date.type(), Types.DateType.get());
-        assertEquals(ship_date.doc(), "io.debezium.time.Date");
-
-        Types.NestedField ship_timestamp = schema.findField("ship_timestamp");
-        assertEquals(ship_timestamp.type(), Types.TimestampType.withoutZone());
-        assertEquals(ship_timestamp.doc(), "io.debezium.time.MicroTimestamp");
-
-        Types.NestedField ship_timestamp_zoned = schema.findField("ship_timestamp_zoned");
-        assertEquals(ship_timestamp_zoned.type(), Types.TimestampType.withZone());
-        assertEquals(ship_timestamp_zoned.doc(), "io.debezium.time.ZonedTimestamp");
-
-        Types.NestedField ship_time = schema.findField("ship_time");
-        assertEquals(ship_time.type(), Types.TimeType.get());
-        assertEquals(ship_time.doc(), "io.debezium.time.MicroTime");
-
-        Types.NestedField ship_time_zoned = schema.findField("ship_time_zoned");
-        assertEquals(ship_time_zoned.type(), Types.TimeType.get());
-        assertEquals(ship_time_zoned.doc(), "io.debezium.time.ZonedTime");
-
-        GenericRecord record = e.asIcebergRecord(schema);
-        assertEquals(record.getField("ship_date"), LocalDate.parse("2182-08-20"));
-        assertEquals(record.getField("ship_timestamp"), LocalDateTime.parse("2182-08-19T21:50:56.016196"));
-        assertEquals(record.getField("ship_timestamp_zoned"), OffsetDateTime.parse("2023-04-11T20:32:46.821144Z"));
-        assertEquals(record.getField("ship_time"), LocalTime.ofNanoOfDay(73966821144L * 1000));
-        assertEquals(record.getField("ship_time_zoned"), OffsetTime.parse("20:32:46.821144Z").toLocalTime());
     }
 
     @Test
@@ -282,10 +206,10 @@ class TestIcebergUtil {
                 MAPPER.readTree(debeziumMetadataSchema).get("schema"), null,
                 defaultConfiguration
         );
-        Schema schema = e.icebergSchema();
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
         String schemaString = schema.toString();
 
-        GenericRecord record = e.asIcebergRecord(schema);
+        GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
 
         assertTrue(schemaString.contains("data_collections: optional list<struct"));
 
@@ -349,15 +273,15 @@ class TestIcebergUtil {
                 MAPPER.readTree(debeziumTimeCoercionSchema).get("schema"), null,
                 configuration
         );
-        Schema schema = e.icebergSchema();
-        GenericRecord record = e.asIcebergRecord(schema);
+        Schema schema = e.icebergSchema(defaultPartitionColumn);
+        GenericRecord record = e.asIcebergRecord(schema, defaultPartitionColumn, defaultPartitionTimestamp);
         String schemaString = schema.toString();
         String recordString = record.toString();
 
-        assertTrue(schemaString.contains("ship_date: optional string (io.debezium.time.Date)"));
-        assertTrue(schemaString.contains("ship_timestamp: optional string (io.debezium.time.MicroTimestamp)"));
+        assertTrue(schemaString.contains("ship_date: optional date (io.debezium.time.Date)"));
+        assertTrue(schemaString.contains("ship_timestamp: optional timestamp (io.debezium.time.MicroTimestamp)"));
         assertTrue(recordString.contains("2182-08-20"));
-        assertTrue(recordString.contains("2182-08-19T21:50:56.016196Z"));
+        assertTrue(recordString.contains("2182-08-19T21:50:56.016196"));
     }
 
     @Test

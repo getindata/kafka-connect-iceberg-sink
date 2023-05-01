@@ -216,20 +216,7 @@ public class IcebergChangeEvent {
         }
         break;
       case STRING:
-        // string destination coercions based upon schema 'name' annotations
-        if (IcebergChangeEvent.coerceDebeziumDate && fieldTypeName.equals("io.debezium.time.Date")) {
-          val = node.isNull() ? null : LocalDate.ofEpochDay(node.asInt()).toString();
-        }
-        else {
-          if (IcebergChangeEvent.coerceDebeziumMicroTimestamp &&
-              fieldTypeName.equals("io.debezium.time.MicroTimestamp")) {
-            val = node.isNull() ? null : Instant.ofEpochSecond(0L, node.asLong() * 1000).toString();
-          }
-          else {
-            // if the node is not a value node (method isValueNode returns false), convert it to string.
-            val = node.isValueNode() ? node.asText(null) : node.toString();
-          }
-        }
+        val = node.isValueNode() ? node.asText(null) : node.toString();
         break;
       case BINARY:
         try {
