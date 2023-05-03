@@ -35,22 +35,26 @@ public class IcebergUtil {
   protected static final ObjectMapper jsonObjectMapper = new ObjectMapper();
 
   public static Table createIcebergTable(Catalog icebergCatalog, TableIdentifier tableIdentifier,
-                                         Schema schema, IcebergSinkConfiguration configuration) {
+      Schema schema, IcebergSinkConfiguration configuration) {
 
     LOGGER.info("Creating table:'{}'\nschema:{}\nrowIdentifier:{}", tableIdentifier, schema,
         schema.identifierFieldNames());
 
     boolean partition = !configuration.isUpsert();
     final PartitionSpec ps;
-    if (partition && schema.findField("__source_ts") != null) {
-      ps = PartitionSpec.builderFor(schema).day("__source_ts").build();
+    if (partition && schema.findField(configuration.getPartitionColumn()) != null) {
+      ps = PartitionSpec.builderFor(schema).day(configuration.getPartitionColumn()).build();
     } else {
       ps = PartitionSpec.builderFor(schema).build();
     }
 
+    String formatVersion = "2";
+    if (configuration.getFormatVersion() != null && !"".equals(configuration.getFormatVersion())) {
+      formatVersion = configuration.getFormatVersion();
+    }
     return icebergCatalog.buildTable(tableIdentifier, schema)
         .withProperties(configuration.getIcebergTableConfiguration())
-        .withProperty(FORMAT_VERSION, "2")
+        .withProperty(FORMAT_VERSION, formatVersion)
         .withSortOrder(IcebergUtil.getIdentifierFieldsAsSortOrder(schema))
         .withPartitionSpec(ps)
         .create();
@@ -90,43 +94,43 @@ public class IcebergUtil {
   }
 
   public static String toSnakeCase(String inputString) {
-      
-      StringBuilder sb = new StringBuilder();
-      boolean lastUpper = true;
-      boolean lastSeparator = false;
 
-      for (Character c : inputString.toCharArray()) {
-          
-          if (Character.isUpperCase(c)) {
+    StringBuilder sb = new StringBuilder();
+    boolean lastUpper = true;
+    boolean lastSeparator = false;
 
-              if (!lastUpper) {
+    for (Character c : inputString.toCharArray()) {
 
-                  if (!lastSeparator) {
-                      sb.append("_");
-                  }
+      if (Character.isUpperCase(c)) {
 
-                  lastUpper = true;
-              }
+        if (!lastUpper) {
 
-              sb.append(Character.toLowerCase(c));
-              lastSeparator = false;
+          if (!lastSeparator) {
+            sb.append("_");
           }
-          
-          else {
-              
-              if (c == '_') {
-                  lastSeparator = true;
-              }
 
-              else {
-                  lastSeparator = false;
-              }
-              
-              sb.append(c);
-              lastUpper = false;
-          }
+          lastUpper = true;
+        }
+
+        sb.append(Character.toLowerCase(c));
+        lastSeparator = false;
       }
-      
-      return sb.toString();
+
+      else {
+
+        if (c == '_') {
+          lastSeparator = true;
+        }
+
+        else {
+          lastSeparator = false;
+        }
+
+        sb.append(c);
+        lastUpper = false;
+      }
+    }
+
+    return sb.toString();
   }
 }

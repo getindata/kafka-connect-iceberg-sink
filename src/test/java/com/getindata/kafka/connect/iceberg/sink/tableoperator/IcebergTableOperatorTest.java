@@ -50,7 +50,7 @@ class IcebergTableOperatorTest {
                 .build();
 
         final TableIdentifier tableId = TableIdentifier.of(Namespace.of(TABLE_NAMESPACE), TABLE_PREFIX + sampleEvent.destinationTable());
-        return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(), config);
+        return IcebergUtil.createIcebergTable(icebergCatalog, tableId, sampleEvent.icebergSchema(config.getPartitionColumn()), config);
     }
 
     @Test
