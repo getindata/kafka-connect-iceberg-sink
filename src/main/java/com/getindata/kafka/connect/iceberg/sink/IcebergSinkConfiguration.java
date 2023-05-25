@@ -21,6 +21,7 @@ public class IcebergSinkConfiguration {
     public static final String TABLE_PREFIX = "table.prefix";
     public static final String TABLE_AUTO_CREATE = "table.auto-create";
     public static final String TABLE_SNAKE_CASE = "table.snake-case";
+    public static final String RICH_TEMPORAL_TYPES = "rich-temporal-types";
     public static final String ICEBERG_PREFIX = "iceberg.";
     public static final String ICEBERG_TABLE_PREFIX = "iceberg.table-default";
     public static final String CATALOG_NAME = ICEBERG_PREFIX + "name";
@@ -53,6 +54,9 @@ public class IcebergSinkConfiguration {
                     "Prefix added to all table names")
             .define(TABLE_SNAKE_CASE, BOOLEAN, false, MEDIUM,
                     "Coerce table names to snake_case")
+            .define(RICH_TEMPORAL_TYPES, BOOLEAN, false, MEDIUM,
+                    "Coerce Debezium Date, MicroTimestamp, ZonedTimestamp, MicroTime, and ZonedTime values " +
+                            "from JSON primitives to their corresponding Iceberg rich types")
             .define(CATALOG_NAME, STRING, "default", MEDIUM,
                     "Iceberg catalog name")
             .define(CATALOG_IMPL, STRING, null, MEDIUM,
@@ -112,6 +116,10 @@ public class IcebergSinkConfiguration {
 
     public boolean isTableSnakeCase() {
         return parsedConfig.getBoolean(TABLE_SNAKE_CASE);
+    }
+
+    public boolean isRichTemporalTypes() {
+        return parsedConfig.getBoolean(RICH_TEMPORAL_TYPES);
     }
 
     public String getCatalogName() {
