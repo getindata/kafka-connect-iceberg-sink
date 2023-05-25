@@ -28,7 +28,7 @@ public class IcebergSinkTask extends SinkTask {
         IcebergSinkConfiguration configuration = new IcebergSinkConfiguration(properties);
         Catalog icebergCatalog = IcebergCatalogFactory.create(configuration);
         IcebergTableOperator icebergTableOperator = IcebergTableOperatorFactory.create(configuration);
-        SinkRecordToIcebergChangeEventConverter converter = SinkRecordToIcebergChangeEventConverterFactory.create();
+        SinkRecordToIcebergChangeEventConverter converter = SinkRecordToIcebergChangeEventConverterFactory.create(configuration);
         consumer = new IcebergChangeConsumer(configuration, icebergCatalog, icebergTableOperator, converter);
     }
 
