@@ -282,6 +282,7 @@ class TestIcebergUtil {
         assertTrue(schemaString.contains("ship_timestamp: optional timestamp (io.debezium.time.MicroTimestamp)"));
         assertTrue(recordString.contains("2182-08-20"));
         assertTrue(recordString.contains("2020-08-01T19:24:29.322"));
+        assertTrue(recordString.contains("2020-08-01T19:24:59.322"));
     }
 
     @Test
