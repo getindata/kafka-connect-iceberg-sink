@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+- Support debezium mysql Rich temporal type: org.apache.kafka.connect.data.Timestamp
+- Epoch time to timestamp bug fix
+- Rich temporal types are documented
+
 ## [0.4.0] - 2023-05-25
 
 -   Updates dependencies to resolve some jackson-databind critical CVEs.

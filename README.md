@@ -30,6 +30,7 @@ mvn clean package
 | iceberg.partition.column    | String  | \_\_source_ts    | Column used for partitioning. If the column already exists, it must be of type timestamp.                                                                   |
 | iceberg.partition.timestamp | String  | \_\_source_ts_ms | Column containing unix millisecond timestamps to be converted to partitioning times. If equal to partition.column, values will be replaced with timestamps. |
 | iceberg.format-version      | String  | 2                | Specification for the Iceberg table format. Version 1: Analytic Data Tables. Version 2: Row-level Deletes. Default 2.                                       |
+| rich-temporal-types         | boolean | false            | Coerce Debezium Date, MicroTimestamp, ZonedTimestamp, MicroTime, and ZonedTime values from JSON primitives to their corresponding Iceberg rich types        |
 
 ### REST / Manual based installation
 
