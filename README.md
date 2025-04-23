@@ -1,5 +1,7 @@
 # Kafka Connect Iceberg Sink
 
+This repository is archived. There is official support for Kafka Connect in Apache Iceberg project https://iceberg.apache.org/docs/latest/kafka-connect/
+
 Based on https://github.com/memiiso/debezium-server-iceberg
 
 ## Build
