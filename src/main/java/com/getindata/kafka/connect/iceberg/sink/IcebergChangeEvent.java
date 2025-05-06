@@ -119,6 +119,10 @@ public class IcebergChangeEvent {
           return Types.TimestampType.withoutZone();
         }
         else if (configuration.isRichTemporalTypes() &&
+                fieldTypeName.equals("org.apache.kafka.connect.data.Timestamp")) {
+          return Types.TimestampType.withoutZone();
+        }
+        else if (configuration.isRichTemporalTypes() &&
                  fieldTypeName.equals("io.debezium.time.MicroTime")) {
           return Types.TimeType.get();
         }
@@ -189,7 +193,7 @@ public class IcebergChangeEvent {
           val = OffsetDateTime.parse(node.asText());
         }
         else if (node.isNumber()) {
-          Instant instant = Instant.ofEpochSecond(0L, node.asLong() * 1000);
+          Instant instant = Instant.ofEpochMilli(node.asLong());
           val = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
         }
         else if (node.isNull()){
